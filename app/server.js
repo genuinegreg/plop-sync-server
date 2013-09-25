@@ -9,7 +9,8 @@ var log = bunyan.createLogger({
     streams: [
         {
             level: 'info',
-            path: './btsync-saas.log'       // log INFO and above to btsync-saas.log
+            path: './btsync-saas.log',       // log INFO and above to btsync-saas.log
+            stream: process.stdout
         },
         {
             level: 'error',
@@ -25,7 +26,6 @@ var route = require('./lib/routes');
 var access = require('./lib/accessControlMiddleware');
 
 
-
 var server = restify.createServer({
     name: 'btsync-saas',
     log: log
@@ -34,6 +34,8 @@ var server = restify.createServer({
 
 
 // parse http basic auth header
+server.use(restify.CORS({credentials: true}));
+server.use(restify.fullResponse());
 server.use(restify.authorizationParser());
 server.use(restify.queryParser());
 server.use(access.log());
@@ -42,7 +44,7 @@ server.use(access.log());
 // ***********************
 // Users ressources
 server.get(
-    '/users/:id', access.authentificated(), access.idRequired(),  access.userRestricted(),
+    '/users/:id', access.authentificated(), access.idRequired(), access.userRestricted(),
     route.Users.info);
 server.post(
     '/users/:id/create/:password', access.idRequired(), access.passwordRequired(),

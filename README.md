@@ -16,7 +16,7 @@ get User profile
 
     GET /users/:id
     
-greate a news user
+create a news user
 
     POST /users/:id/:password
 
