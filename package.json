@@ -1,0 +1,18 @@
+{
+  "name": "btsync-saas-server",
+  "version": "0.1.0",
+  "description": "Btsync-saas rest api",
+  "main": "app/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "BSD-2-Clause",
+  "dependencies": {
+    "restify": "~2.6.0",
+    "mongoose": "~3.6.19",
+    "bcrypt": "~0.7.7",
+    "validator": "~1.5.1",
+    "async": "~0.2.9"
+  }
+}

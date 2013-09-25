@@ -8,7 +8,7 @@ Api ressources
 ---------------------
 
  - `Users` : users profiles
- - `Directories` : shared folders
+ - `Folders` : shared folders
  
 ### Users
     
@@ -24,20 +24,24 @@ get api token (login)
 
     GET /users/:id/:password
 
-### Directories
+### Folders
 
-get user shared directories
+get user shared folders
 
-    GET /users/:id/directories/
+    GET /users/:id/folders/
     
-get infromation from a specific user shared directory
+get infromation from a specific user shared folder
 
-    GET /users/:id/directories/:secret
+    GET /users/:id/folders/:secret
     
 create a new shared folder with a generated secet for the user
 
-    POST /users/:id/directories/
+    POST /users/:id/folders/
 
 Connect user account to an existing shared folder
 
-    POST /users/:id/directories/:secret
+    POST /users/:id/folders/:secret
+    
+Remove a shared folder from btsync-saas
+
+	DEL /users/:id/folders/:secret
