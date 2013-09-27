@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 var async = require('async');
 var restify = require('restify');
@@ -6,7 +6,7 @@ var schema = require('./schema');
 var crypto = require('crypto');
 
 var check = require('validator').check;
-var sanitize = require('validator').sanitize
+var sanitize = require('validator').sanitize;
 
 
 exports.Users = {
@@ -23,7 +23,7 @@ exports.Users = {
                 }
             });
 
-        })
+        });
     },
     create: function createUser(req, res, next) {
 
@@ -34,7 +34,7 @@ exports.Users = {
             console.log(err);
             console.log(user);
 
-            if (err && err.code === 11000) return next(new restify.InvalidArgumentError('Username already in use'))
+            if (err && err.code === 11000) return next(new restify.InvalidArgumentError('Username already in use'));
             if (err) return next(new restify.InternalError());
 
             res.send({
@@ -43,7 +43,7 @@ exports.Users = {
                     token: user.token
                 }
             });
-        })
+        });
     },
     login: function login(req, res, next) {
 
@@ -58,10 +58,10 @@ exports.Users = {
                     id: user.id,
                     token: user.token
                 }
-            })
-        })
+            });
+        });
     }
-}
+};
 
 
 exports.Folders = {
@@ -77,17 +77,17 @@ exports.Folders = {
                     cb(undefined, {
                         secret: item.secret,
                         description: item.description
-                    })
+                    });
                 },
                 function callback(err, results) {
                     if (err) return next(new restify.InternalError());
 
                     res.send({
                         folders: results
-                    })
+                    });
                 }
-            )
-        })
+            );
+        });
     },
     get: function getSharedFolderInformation(req, res, next) {
         console.log('getSharedFolderInformation()');
@@ -127,9 +127,9 @@ exports.Folders = {
                     secret: folder.secret,
                     description: folder.description
                 }
-            })
+            });
 
-        })
+        });
     },
     connect: function connectToSharedFolder(req, res, next) {
 
@@ -140,16 +140,16 @@ exports.Folders = {
         });
 
         folder.save(function (err, folder) {
-            if (err) return new (new restify.InternalError());
+            if (err) return next(new restify.InternalError());
 
             res.send({
                 folder: {
                     secret: folder.secret,
                     description: folder.description
                 }
-            })
+            });
 
-        })
+        });
 
     },
     delete: function deleteSharedFolder(req, res, next) {
@@ -190,16 +190,16 @@ exports.Folders = {
 
 
                     folder.save(function (err) {
-                        if (err) return next(new new restify.InternalError());
+                        if (err) return next(new restify.InternalError());
 
                         res.send({
-                            result: 'ok'
-                        })
-                    })
+                            update: 'ok'
+                        });
+                    });
                 }
 
 
             }
-        )
+        );
     }
-}
+};

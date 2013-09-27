@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 // crypto stuff
 var bcrypt = require('bcrypt');
@@ -16,8 +16,8 @@ var BCRYPT_STRENGTH = 10;
 var TOKEN_STRENGTH = 64;
 
 
-if (!process.env.DB_HOST) throw new Error('Missing env variable DB_HOST')
-if (!process.env.DB_NAME) throw new Error('Missing env variable DB_NAME')
+if (!process.env.DB_HOST) throw new Error('Missing env variable DB_HOST');
+if (!process.env.DB_NAME) throw new Error('Missing env variable DB_NAME');
 
 
 mongoose.connect('mongodb://' + process.env.DB_HOST + '/' + process.env.DB_NAME);
@@ -27,29 +27,35 @@ mongoose.connect('mongodb://' + process.env.DB_HOST + '/' + process.env.DB_NAME)
  * User Schema
  * @type {*}
  */
-var userSchema = Schema({
+var userSchema = new Schema({
     _id: String,
     password: String,
     token: {type: String, index: true, unique: true, sparse: true, background: false}
 });
 
+// *************
 // instance methods
 userSchema.methods.findFolders = function findFolders(cb) {
-    return Folder.find({user: this._id}, cb);
-}
+    var _this = this;
+    return _this.model('Folder').find({user: this._id}, cb);
+};
 
 // *****
 // statics
 userSchema.statics.create = function createUser(id, password, createCallback) {
 
+    var _this = this;
+
     async.waterfall([
         function hash(callback) {
             console.log('hash()');
-            bcrypt.hash(password, BCRYPT_STRENGTH, callback)
+            bcrypt.hash(password, BCRYPT_STRENGTH, callback);
         }  ,
         function saveUser(hash, callback) {
-            console.log('saveUser()')
-            var user = new User({
+            console.log('saveUser()');
+
+            var LocalUserModel = _this.model('User');
+            var user = new LocalUserModel({
                 _id: id,
                 password: hash
             });
@@ -60,7 +66,7 @@ userSchema.statics.create = function createUser(id, password, createCallback) {
             console.log('generateToken()');
 
 
-            var ok = false
+            var ok = false;
             var i = 0;
             var newUser;
             async.doUntil(
@@ -68,7 +74,7 @@ userSchema.statics.create = function createUser(id, password, createCallback) {
 
                     var token = crypto.randomBytes(TOKEN_STRENGTH).toString('base64');
 
-                    User.findByIdAndUpdate(
+                    _this.model('User').findByIdAndUpdate(
                         user._id,
                         {
                             token: token,
@@ -84,23 +90,27 @@ userSchema.statics.create = function createUser(id, password, createCallback) {
                     );
                 },
                 function test() {
-                    console.log('test 1: ' + ok)
-                    console.log('test 2: ' + (i > 10))
+                    console.log('test 1: ' + ok);
+                    console.log('test 2: ' + (i > 10));
                     return ok || i++ > 10;
                 },
                 function cb(err) {
                     if (!ok) return callback(new Error('unable to find a unique token'));
                     callback(undefined, newUser);
-                })
+                });
 
 
-        }],
-        createCallback);
+        }
+    ],
+    createCallback);
 
-}
+};
 
 userSchema.statics.login = function (id, password, cb) {
-    User.findOne({
+
+    var _this = this;
+
+    _this.model('User').findOne({
             _id: id
         },
         function (err, user) {
@@ -112,8 +122,8 @@ userSchema.statics.login = function (id, password, cb) {
 
             return cb(undefined, user);
         }
-    )
-}
+    );
+};
 
 var User = mongoose.model('User', userSchema);
 
@@ -122,7 +132,7 @@ var User = mongoose.model('User', userSchema);
  * Folder Schema
  * @type {*}
  */
-var folderSchema = Schema({
+var folderSchema = new Schema({
     name: String,
     secret: { type: String, index: true },
     description: String,

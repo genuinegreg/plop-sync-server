@@ -1,7 +1,7 @@
-"use strict";
+'use strict';
 
-var check = require('validator').check,
-    sanitize = require('validator').sanitize
+var check = require('validator').check;
+var sanitize = require('validator').sanitize;
 
 var schema = require('./schema');
 var restify = require('restify');
@@ -10,7 +10,7 @@ exports.authentificated = function () {
 
     return function (req, res, next) {
 
-        console.info('authentificated()')
+        console.info('authentificated()');
         // if no username is provided juste pass
         if (!req.username || req.username === 'anonymous') return next(new restify.NotAuthorizedError('Missing auth token'));
 
@@ -25,17 +25,17 @@ exports.authentificated = function () {
 
                 req.user = user;
                 next();
-            })
-    }
-}
+            });
+    };
+};
 
 exports.userRestricted = function () {
     return function (req, res, next) {
         if (req.params.id !== req.user._id) return next(
-            new restify.NotAuthorizedError('You are not allowed to access other users profile'))
+            new restify.NotAuthorizedError('You are not allowed to access other users profile'));
         next();
-    }
-}
+    };
+};
 
 exports.idRequired = function () {
     return function (req, res, next) {
@@ -44,8 +44,8 @@ exports.idRequired = function () {
 
         req.params.id = sanitize(req.params.id).trim();
         next();
-    }
-}
+    };
+};
 
 exports.secretRequired = function () {
     return function (req, res, next) {
@@ -54,8 +54,8 @@ exports.secretRequired = function () {
 
         req.params.secret = sanitize(req.params.secret).trim();
         next();
-    }
-}
+    };
+};
 
 exports.passwordRequired = function () {
     return function (req, res, next) {
@@ -64,17 +64,18 @@ exports.passwordRequired = function () {
 
         req.params.password = sanitize(req.params.password).trim();
         next();
-    }
-}
+    };
+};
 
 exports.log = function log() {
     return function (req, res, next) {
         req.log.info([
             req.route.method,
             req.route.path,
-            req.route.versions].
-            join('; '));
+            req.route.versions
+        ].join('; '));
+
         next();
 
-    }
-}
+    };
+};
