@@ -43,42 +43,46 @@ server.use(access.log());
 
 // ***********************
 // Users ressources
-server.get(
+
+server.get( // Return user profile
     '/users/:id', access.authentificated(), access.idRequired(), access.userRestricted(),
     route.Users.info);
-server.post(
+
+server.post( // Create a new user
     '/users/:id/create/:password', access.idRequired(), access.passwordRequired(),
     route.Users.create);
-server.get(
+
+server.get( // Send credential and return auth token (login)
     '/users/:id/login/:password', access.idRequired(), access.passwordRequired(),
     route.Users.login);
 
 
+
 // ************************
 // Folders ressources
-server.get(
+
+server.get( // Return folders list
     '/users/:id/folders/', access.authentificated(), access.idRequired(), access.userRestricted(),
     route.Folders.list);
-server.get(
+server.get( // return folders details
     '/users/:id/folders/:secret', access.authentificated(), access.idRequired(), access.secretRequired(), access.userRestricted(),
     route.Folders.get);
-server.post(
+server.post( // create a new folder with a random secret
     '/users/:id/folders', access.authentificated(), access.idRequired(), access.userRestricted(),
     route.Folders.create);
-server.post(
+server.post( // create a new folder with a secret
     '/users/:id/folders/:secret', access.authentificated(), access.idRequired(), access.secretRequired(), access.userRestricted(),
     route.Folders.connect);
-server.del(
+server.del( // delete a shared folder
     '/users/:id/folders/:secret', access.authentificated(), access.idRequired(), access.secretRequired(), access.userRestricted(),
     route.Folders.delete);
-
 
 
 // ***********************
 // Serve static file
 
 server.get(/\/.*/, restify.serveStatic({
-    directory: '../btsync-saas-client/app/' ,
+    directory: '../btsync-saas-client/app/',
     default: 'index.html'
 }));
 
