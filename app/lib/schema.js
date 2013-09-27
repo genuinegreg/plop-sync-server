@@ -16,7 +16,11 @@ var BCRYPT_STRENGTH = 10;
 var TOKEN_STRENGTH = 64;
 
 
-mongoose.connect('mongodb://localhost/btsync-saas');
+if (!process.env.DB_HOST) throw new Error('Missing env variable DB_HOST')
+if (!process.env.DB_NAME) throw new Error('Missing env variable DB_NAME')
+
+
+mongoose.connect('mongodb://' + process.env.DB_HOST + '/' + process.env.DB_NAME);
 
 
 /**
@@ -119,6 +123,7 @@ var User = mongoose.model('User', userSchema);
  * @type {*}
  */
 var folderSchema = Schema({
+    name: String,
     secret: { type: String, index: true },
     description: String,
     user: { type: String, ref: 'User', index: true}
