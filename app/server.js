@@ -73,6 +73,15 @@ server.del(
     route.Folders.delete);
 
 
+
+// ***********************
+// Serve static file
+
+server.get(/\/.*/, restify.serveStatic({
+    directory: '../btsync-saas-client/app/' ,
+    default: 'index.html'
+}));
+
 // start server
 server.listen(8080, function () {
     console.log('%s listening at %s', server.name, server.url);
