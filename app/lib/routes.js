@@ -3,6 +3,7 @@
 var async = require('async');
 var restify = require('restify');
 var schema = require('./schema');
+var crypto = require('crypto');
 
 
 exports.Users = {
@@ -111,7 +112,7 @@ exports.Folders = {
     create: function createSharedFodler(req, res, next) {
         console.log('createSharedFodler()');
         var folder = new schema.Folder({
-            secret: 'PLACEHOLDER SECRET',
+            secret: crypto.randomBytes(64).toString('hex'),
             user: req.user._id
         });
 
