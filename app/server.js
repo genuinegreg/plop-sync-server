@@ -38,6 +38,7 @@ server.use(restify.CORS({credentials: true}));
 server.use(restify.fullResponse());
 server.use(restify.authorizationParser());
 server.use(restify.queryParser());
+server.use(restify.bodyParser());
 server.use(access.log());
 
 
@@ -76,6 +77,9 @@ server.post( // create a new folder with a secret
 server.del( // delete a shared folder
     '/users/:id/folders/:secret', access.authentificated(), access.idRequired(), access.secretRequired(), access.userRestricted(),
     route.Folders.delete);
+server.put( // update existing shared folder
+    '/users/:id/folders/:secret', access.authentificated(), access.idRequired(), access.secretRequired(), access.userRestricted(),
+    route.Folders.update);
 
 
 // ***********************

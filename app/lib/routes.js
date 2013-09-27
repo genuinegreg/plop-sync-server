@@ -5,6 +5,9 @@ var restify = require('restify');
 var schema = require('./schema');
 var crypto = require('crypto');
 
+var check = require('validator').check;
+var sanitize = require('validator').sanitize
+
 
 exports.Users = {
     info: function getUserInfo(req, res, next) {
@@ -168,5 +171,35 @@ exports.Folders = {
                 });
             }
         );
+    },
+    update: function updateSharedFolder(req, res, next) {
+        console.log('updateSharedFolder()');
+
+        schema.Folder.findOne(
+            {
+                user: req.user._id,
+                secret: req.params.secret
+            },
+            function (err, folder) {
+                if (err) return next(new restify.InternalError());
+                if (!folder) return next(new restify.ResourceNotFoundError('Shared folder not found'));
+
+                if (req.params.name || req.params.description) {
+                    if (req.params.name) folder.name = sanitize(req.params.name).xss();
+                    if (req.params.description) folder.description = sanitize(req.params.description).xss();
+
+
+                    folder.save(function (err) {
+                        if (err) return next(new new restify.InternalError());
+
+                        res.send({
+                            result: 'ok'
+                        })
+                    })
+                }
+
+
+            }
+        )
     }
 }
