@@ -3,45 +3,124 @@ Btsync-saas Server
 
 Rest api for Btsync-saas
 
+Authentification
+-----------------
+
+Send auth token in Authorisation header like this
+
+    Authorisation: Basic (:username).base64()
 
 Api ressources
 ---------------------
 
  - `Users` : users profiles
- - `Folders` : shared folders
+ - `Folders` : Shared folders
  
 ### Users
-    
-get User profile
+
+
+#### Get User profile
 
     GET /users/:id
-    
-create a news user
 
-    POST /users/:id/:password
+__Authentification :__ yes
 
-get api token (login)
+__Arguments :__
 
-    GET /users/:id/:password
+ - __id (Mandatory GET) :__ User id
+
+__Response Exemple :__
+
+```javascript
+{
+    id: id
+}
+```
+
+
+#### Create new User
+
+    POST /users/:id/create
+
+__Authentification :__ no
+
+__Arguments :__
+
+ - __id (Mandatory GET) :__ User id
+ - __password (Mandatory POST) :__ Password
+
+
+#### Login
+
+    GET /users/:id/login
+
+__Authentification :__ no
+
+__Arguments :__
+
+ - __id (Mandatory GET) :__ User id
+ - __password (Mandatory POST) :__ Password
 
 ### Folders
 
-get user shared folders
+#### Get user shared folders
+
 
     GET /users/:id/folders/
-    
-get infromation from a specific user shared folder
 
-    GET /users/:id/folders/:secret
-    
-create a new shared folder with a generated secet for the user
+__Authentification :__ yes
+
+__Arguments :__
+
+ - __id (Mandatory GET) :__ User id
+
+
+#### Get folder details
+
+
+    GET /users/:id/folders/:folderId
+
+__Authentification :__ yes
+
+__Arguments :__
+
+ - __id (Mandatory GET) :__ User id
+ - __folderId (Mandatory GET) :__ Folder id
+
+#### Create new folder
 
     POST /users/:id/folders/
 
-Connect user account to an existing shared folder
+__Authentification :__ yes
 
-    POST /users/:id/folders/:secret
+__Arguments :__
+
+ - __id (Mandatory GET) :__ User id
+ - __secret (POST) :__ Folder secret, if not provided a random secret will be generated
+ - __name (POST) :__ Folder name
+ - __description (POST) :__ Folder description
+
     
-Remove a shared folder from btsync-saas
+#### Remove a folder
 
-	DEL /users/:id/folders/:secret
+    DEL /users/:id/folders/:folderId
+
+__Authentification :__ yes
+
+__Arguments :__
+
+ - __id (Mandatory GET) :__ User id
+ - __folderId (Mandatory GET) :__ Folder id
+
+#### Update a folder
+
+    PUT /users/:id/folders/:folderId
+
+__Authentification :__ yes
+
+__Arguments :__
+
+ - __id (Mandatory GET) :__ User id
+ - __folderId (Mandatory GET) :__ Folder id
+ - __name (POST) :__ Folder name
+ - __description (POST) :__ Folder description

@@ -5,7 +5,7 @@ var restify = require('restify');
 
 var bunyan = require('bunyan');
 var log = bunyan.createLogger({
-    name: 'myapp',
+    name: 'plop-sync',
     streams: [
         {
             level: 'info',
@@ -22,7 +22,6 @@ var log = bunyan.createLogger({
 
 // require libs
 var route = require('./lib/routes');
-
 var access = require('./lib/accessControlMiddleware');
 
 
@@ -50,11 +49,11 @@ server.get( // Return user profile
     route.Users.info);
 
 server.post( // Create a new user
-    '/users/:id/create/:password', access.idRequired(), access.passwordRequired(),
+    '/users/:id/create', access.idRequired(), access.passwordRequired(),
     route.Users.create);
 
-server.get( // Send credential and return auth token (login)
-    '/users/:id/login/:password', access.idRequired(), access.passwordRequired(),
+server.post( // Send credential and return auth token (login)
+    '/users/:id/login', access.idRequired(), access.passwordRequired(),
     route.Users.login);
 
 
@@ -66,19 +65,16 @@ server.get( // Return folders list
     '/users/:id/folders/', access.authentificated(), access.idRequired(), access.userRestricted(),
     route.Folders.list);
 server.get( // return folders details
-    '/users/:id/folders/:secret', access.authentificated(), access.idRequired(), access.secretRequired(), access.userRestricted(),
+    '/users/:id/folders/:folderId', access.authentificated(), access.idRequired(), access.folderIdRequired(), access.userRestricted(),
     route.Folders.get);
-server.post( // create a new folder with a random secret
+server.post( // create a new folder (with or without secret
     '/users/:id/folders', access.authentificated(), access.idRequired(), access.userRestricted(),
     route.Folders.create);
-server.post( // create a new folder with a secret
-    '/users/:id/folders/:secret', access.authentificated(), access.idRequired(), access.secretRequired(), access.userRestricted(),
-    route.Folders.connect);
 server.del( // delete a shared folder
-    '/users/:id/folders/:secret', access.authentificated(), access.idRequired(), access.secretRequired(), access.userRestricted(),
+    '/users/:id/folders/:folderId', access.authentificated(), access.idRequired(), access.folderIdRequired(), access.userRestricted(),
     route.Folders.delete);
 server.put( // update existing shared folder
-    '/users/:id/folders/:secret', access.authentificated(), access.idRequired(), access.secretRequired(), access.userRestricted(),
+    '/users/:id/folders/:folderId', access.authentificated(), access.idRequired(), access.folderIdRequired(), access.userRestricted(),
     route.Folders.update);
 
 

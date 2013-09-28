@@ -47,12 +47,12 @@ exports.idRequired = function () {
     };
 };
 
-exports.secretRequired = function () {
+exports.folderIdRequired = function () {
     return function (req, res, next) {
-        if (!req.params.secret)
-            return next(new restify.MissingParameterError('missing :secret parameter'));
+        if (!req.params.folderId)
+            return next(new restify.MissingParameterError('missing :folderId parameter'));
 
-        req.params.secret = sanitize(req.params.secret).trim();
+        req.params.folderId = sanitize(req.params.folderId).trim();
         next();
     };
 };

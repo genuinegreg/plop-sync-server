@@ -18,9 +18,7 @@ exports.Users = {
             if (!user) return next(new restify.ResourceNotFoundError());
 
             res.send({
-                user: {
-                    id: user._id
-                }
+                id: user._id
             });
 
         });
@@ -38,10 +36,8 @@ exports.Users = {
             if (err) return next(new restify.InternalError());
 
             res.send({
-                user: {
-                    id: user._id,
-                    token: user.token
-                }
+                id: user._id,
+                token: user.token
             });
         });
     },
@@ -54,10 +50,8 @@ exports.Users = {
 
 
             res.send({
-                user: {
-                    id: user.id,
-                    token: user.token
-                }
+                id: user.id,
+                token: user.token
             });
         });
     }
@@ -75,16 +69,14 @@ exports.Folders = {
                 folders,
                 function iterator(item, cb) {
                     cb(undefined, {
-                        secret: item.secret,
-                        description: item.description
+                        id: item._id,
+                        name: item.name
                     });
                 },
                 function callback(err, results) {
                     if (err) return next(new restify.InternalError());
 
-                    res.send({
-                        folders: results
-                    });
+                    res.send(results);
                 }
             );
         });
@@ -94,7 +86,7 @@ exports.Folders = {
         schema.Folder.findOne(
             {
                 user: req.user._id,
-                secret: req.params.secret
+                _id: req.params.folderId
             },
             function (err, folder) {
                 if (err) return next(
@@ -104,53 +96,49 @@ exports.Folders = {
                     new restify.ResourceNotFoundError('Shared folder not found'));
 
                 res.send({
-                    folder: {
-                        secret: folder.secret
+                        id: folder._id,
+                        name: folder.name,
+                        secret: folder.secret,
+                        description: folder.description
                     }
-                });
+                );
             }
         );
 
     },
-    create: function createSharedFodler(req, res, next) {
-        console.log('createSharedFodler()');
+    create: function createSharedFolder(req, res, next) {
+        console.log('createSharedFolder()');
+
+        if (req.params.secret) // trim secret input
+            req.params.secret = sanitize(req.params.secret).trim();
+        else //or generate a mock secret for now
+            req.params.secret = crypto.randomBytes(64).toString('hex');
+
+        if (req.params.name) // trim secret name
+            req.params.name = sanitize(req.params.name).trim();
+
+        if (req.params.description) // trim secret name
+            req.params.description = sanitize(req.params.description).trim();
+
         var folder = new schema.Folder({
-            secret: crypto.randomBytes(64).toString('hex'),
-            user: req.user._id
-        });
-
-        folder.save(function (err, folder) {
-            if (err) return next(new restify.InternalError());
-
-            res.send({
-                folder: {
-                    secret: folder.secret,
-                    description: folder.description
-                }
-            });
-
-        });
-    },
-    connect: function connectToSharedFolder(req, res, next) {
-
-        console.log('connectToSharedFolder()');
-        var folder = new schema.Folder({
+            name: req.params.name,
             secret: req.params.secret,
+            description: req.params.description,
             user: req.user._id
         });
 
         folder.save(function (err, folder) {
             if (err) return next(new restify.InternalError());
 
+            console.log(folder);
+
             res.send({
-                folder: {
-                    secret: folder.secret,
-                    description: folder.description
-                }
+                id: folder._id,
+                name: folder.name,
+                secret: folder.secret
             });
 
         });
-
     },
     delete: function deleteSharedFolder(req, res, next) {
         console.log('deleteSharedFolder()');
@@ -158,7 +146,7 @@ exports.Folders = {
         schema.Folder.remove(
             {
                 user: req.user._id,
-                secret: req.params.secret
+                _id: req.params.folderId
             },
             function (err, numberOfAffectedFolder) {
                 if (err) return next(new restify.InternalError());
@@ -178,7 +166,7 @@ exports.Folders = {
         schema.Folder.findOne(
             {
                 user: req.user._id,
-                secret: req.params.secret
+                _id: req.params.folderId
             },
             function (err, folder) {
                 if (err) return next(new restify.InternalError());

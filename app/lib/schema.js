@@ -30,6 +30,9 @@ mongoose.connect('mongodb://' + process.env.DB_HOST + '/' + process.env.DB_NAME)
 var userSchema = new Schema({
     _id: String,
     password: String,
+    email: String,
+    firstName: String,
+    lastName: String,
     token: {type: String, index: true, unique: true, sparse: true, background: false}
 });
 
@@ -103,7 +106,6 @@ userSchema.statics.create = function createUser(id, password, createCallback) {
         }
     ],
     createCallback);
-
 };
 
 userSchema.statics.login = function (id, password, cb) {
