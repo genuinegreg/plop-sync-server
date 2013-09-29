@@ -67,6 +67,24 @@ exports.passwordRequired = function () {
     };
 };
 
+exports.checkEmail = function () {
+    return function (req, res, next) {
+        if (!req.params.email)
+            return next(new restify.MissingParameterError('missing :email parameter'));
+
+        req.params.email = sanitize(req.params.email).trim();
+
+        try {
+            check(req.params.email).isEmail();
+        }
+        catch (err) {
+            return next(new restify.InvalidArgumentError('invalid :email parameter'));
+        }
+
+        next();
+    };
+};
+
 exports.log = function log() {
     return function (req, res, next) {
         req.log.info([

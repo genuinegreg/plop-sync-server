@@ -49,7 +49,7 @@ server.get( // Return user profile
     route.Users.info);
 
 server.put( // Update user profile
-    '/users/:id', access.authentificated(), access.idRequired(), access.userRestricted(),
+    '/users/:id', access.authentificated(), access.idRequired(), access.userRestricted(), access.checkEmail(),
     route.Users.update);
 
 server.post( // Create a new user
