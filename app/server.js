@@ -38,7 +38,7 @@ server.use(restify.fullResponse());
 server.use(restify.authorizationParser());
 server.use(restify.queryParser());
 server.use(restify.bodyParser());
-server.use(access.log());
+//server.use(access.log());
 
 
 // ***********************
@@ -59,7 +59,6 @@ server.post( // Create a new user
 server.post( // Send credential and return auth token (login)
     '/users/:id/login', access.idRequired(), access.passwordRequired(),
     route.Users.login);
-
 
 
 // ************************
@@ -86,7 +85,7 @@ server.put( // update existing shared folder
 // Serve static file
 
 server.get(/\/.*/, restify.serveStatic({
-    directory: '../btsync-saas-client/app/',
+    directory: '../btsync-saas-client/dist/',
     default: 'index.html'
 }));
 
