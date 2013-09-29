@@ -105,7 +105,7 @@ userSchema.statics.create = function createUser(id, password, createCallback) {
 
         }
     ],
-    createCallback);
+        createCallback);
 };
 
 userSchema.statics.login = function (id, password, cb) {
@@ -138,6 +138,7 @@ var folderSchema = new Schema({
     name: String,
     secret: { type: String, index: true },
     description: String,
+    created: { type: Date, default: Date.now},
     user: { type: String, ref: 'User', index: true}
 });
 var Folder = mongoose.model('Folder', folderSchema);

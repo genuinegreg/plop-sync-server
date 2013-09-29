@@ -70,7 +70,9 @@ exports.Folders = {
                 function iterator(item, cb) {
                     cb(undefined, {
                         id: item._id,
-                        name: item.name
+                        name: item.name,
+                        description: item.description,
+                        created: item.created
                     });
                 },
                 function callback(err, results) {
@@ -99,7 +101,8 @@ exports.Folders = {
                         id: folder._id,
                         name: folder.name,
                         secret: folder.secret,
-                        description: folder.description
+                        description: folder.description,
+                        created: folder.created
                     }
                 );
             }
@@ -176,6 +179,7 @@ exports.Folders = {
                     if (req.params.name) folder.name = sanitize(req.params.name).xss();
                     if (req.params.description) folder.description = sanitize(req.params.description).xss();
 
+                    folder.increment();
 
                     folder.save(function (err) {
                         if (err) return next(new restify.InternalError());
