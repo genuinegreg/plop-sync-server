@@ -14,14 +14,54 @@ exports.Users = {
 
         schema.User.findOne({_id: req.params.id}, function (err, user) {
 
-            if (err) return next(new restify.InternalError());
-            if (!user) return next(new restify.ResourceNotFoundError());
+                if (err) return next(new restify.InternalError());
+                if (!user) return next(new restify.ResourceNotFoundError());
 
-            res.send({
-                id: user._id
-            });
+                res.send({
+                    id: user._id,
+                    email: user.email,
+                    firstName: user.firstName,
+                    lastName: user.lastName
+                });
 
-        });
+            }
+        )
+        ;
+    },
+    update: function updateUser(req, res, next) {
+        console.log('updateUser()');
+
+        schema.User.findOne(
+            {
+                _id: req.params.id
+            },
+            function (err, user) {
+                if (err) return next(new restify.InternalError());
+                if (!user) return next(new restify.ResourceNotFoundError('Shared folder not found'));
+
+
+                user.increment();
+
+                user.email = req.params.email;
+                user.firstName = req.params.firstName;
+                user.lastName = req.params.lastName;
+
+
+                user.updatePassword(req.params.password, function (err) {
+                    if (err)  return next(new restify.InternalError());
+
+                    user.save(function (err) {
+                        if (err) return next(new restify.InternalError());
+
+                        res.send({
+                            update: 'ok'
+                        });
+                    });
+                });
+
+
+            }
+        );
     },
     create: function createUser(req, res, next) {
 
@@ -55,7 +95,8 @@ exports.Users = {
             });
         });
     }
-};
+}
+;
 
 
 exports.Folders = {
@@ -168,7 +209,7 @@ exports.Folders = {
 
         schema.Folder.findOne(
             {
-                user: req.user._id,
+                user: req.params.id,
                 _id: req.params.folderId
             },
             function (err, folder) {

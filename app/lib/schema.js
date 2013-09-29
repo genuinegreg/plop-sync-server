@@ -43,6 +43,24 @@ userSchema.methods.findFolders = function findFolders(cb) {
     return _this.model('Folder').find({user: this._id}, cb);
 };
 
+userSchema.methods.updatePassword = function (password, cb) {
+    var _this = this;
+
+    if (!password)
+        return cb(); // don't update password if no password provided
+
+    if (bcrypt.compareSync(password, _this.password))
+        return cb(); // don't update password if it has not been chanegd
+
+
+    bcrypt.hash(password, BCRYPT_STRENGTH, function (err, hash) {
+        if (err) return cb(err);
+
+        _this.password = hash;
+        cb();
+    });
+};
+
 // *****
 // statics
 userSchema.statics.create = function createUser(id, password, createCallback) {

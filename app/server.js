@@ -48,6 +48,10 @@ server.get( // Return user profile
     '/users/:id', access.authentificated(), access.idRequired(), access.userRestricted(),
     route.Users.info);
 
+server.put( // Update user profile
+    '/users/:id', access.authentificated(), access.idRequired(), access.userRestricted(),
+    route.Users.update);
+
 server.post( // Create a new user
     '/users/:id/create', access.idRequired(), access.passwordRequired(),
     route.Users.create);
