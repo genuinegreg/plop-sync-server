@@ -6,6 +6,10 @@ var sanitize = require('validator').sanitize;
 var schema = require('./schema');
 var restify = require('restify');
 
+/**
+ * Ensure user is loged in
+ * @returns {Function}
+ */
 exports.authentificated = function () {
 
     return function (req, res, next) {
@@ -29,6 +33,10 @@ exports.authentificated = function () {
     };
 };
 
+/**
+ * Ensure Ensure authenticated user is accessing his own ressources
+ * @returns {Function}
+ */
 exports.userRestricted = function () {
     return function (req, res, next) {
         if (req.params.id !== req.user._id) return next(
@@ -37,6 +45,10 @@ exports.userRestricted = function () {
     };
 };
 
+/**
+ * Url param :id is required
+ * @returns {Function}
+ */
 exports.idRequired = function () {
     return function (req, res, next) {
         if (!req.params.id)
@@ -47,6 +59,10 @@ exports.idRequired = function () {
     };
 };
 
+/**
+ * Url param :folderId is required
+ * @returns {Function}
+ */
 exports.folderIdRequired = function () {
     return function (req, res, next) {
         if (!req.params.folderId)
@@ -57,6 +73,10 @@ exports.folderIdRequired = function () {
     };
 };
 
+/**
+ * Post param :password is required
+ * @returns {Function}
+ */
 exports.passwordRequired = function () {
     return function (req, res, next) {
         if (!req.params.password)
@@ -67,6 +87,11 @@ exports.passwordRequired = function () {
     };
 };
 
+/**
+ * Validate Post param :email
+ * Ensure it's not missing and is a valid email
+ * @returns {Function}
+ */
 exports.checkEmail = function () {
     return function (req, res, next) {
         if (!req.params.email)
