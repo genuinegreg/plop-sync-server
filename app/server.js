@@ -36,7 +36,7 @@ var server = restify.createServer({
 server.use(restify.CORS({credentials: true}));
 server.use(restify.fullResponse());
 server.use(restify.authorizationParser());
-server.use(restify.queryParser());
+//server.use(restify.queryParser());
 server.use(restify.bodyParser());
 //server.use(access.log());
 
