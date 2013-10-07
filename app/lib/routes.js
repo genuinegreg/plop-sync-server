@@ -8,6 +8,8 @@ var crypto = require('crypto');
 var check = require('validator').check;
 var sanitize = require('validator').sanitize;
 
+var dockerSync = require('./dockerBtsync');
+
 
 exports.Users = {
     info: function getUserInfo(req, res, next) {
@@ -95,8 +97,7 @@ exports.Users = {
             });
         });
     }
-}
-;
+};
 
 
 exports.Folders = {
@@ -156,7 +157,7 @@ exports.Folders = {
         if (req.params.secret) // trim secret input
             req.params.secret = sanitize(req.params.secret).trim();
         else //or generate a mock secret for now
-            req.params.secret = crypto.randomBytes(64).toString('hex');
+            req.params.secret = dockerSync.getSecret();
 
         if (req.params.name) // trim secret name
             req.params.name = sanitize(req.params.name).trim();
@@ -164,42 +165,54 @@ exports.Folders = {
         if (req.params.description) // trim secret name
             req.params.description = sanitize(req.params.description).trim();
 
-        var folder = new schema.Folder({
-            name: req.params.name,
-            secret: req.params.secret,
-            description: req.params.description,
-            user: req.user._id
-        });
 
-        folder.save(function (err, folder) {
+        dockerSync.startNewSyncContainer(req.params.secret, function (err, containerId) {
+
             if (err) return next(new restify.InternalError());
 
-            console.log(folder);
-
-            res.send({
-                id: folder._id,
-                name: folder.name,
-                secret: folder.secret
+            var folder = new schema.Folder({
+                name: req.params.name,
+                secret: req.params.secret,
+                description: req.params.description,
+                containerId: containerId,
+                user: req.user._id
             });
 
+            folder.save(function (err, folder) {
+                if (err) return next(new restify.InternalError());
+
+                console.log(folder);
+
+                res.send({
+                    id: folder._id,
+                    name: folder.name,
+                    secret: folder.secret
+                });
+
+            });
         });
+
     },
     delete: function deleteSharedFolder(req, res, next) {
         console.log('deleteSharedFolder()');
 
-        schema.Folder.remove(
+        schema.Folder.findOneAndRemove(
             {
                 user: req.user._id,
                 _id: req.params.folderId
             },
-            function (err, numberOfAffectedFolder) {
+            function (err, folder) {
                 if (err) return next(new restify.InternalError());
 
-                if (numberOfAffectedFolder < 1)
+                if (!folder)
                     return next(new restify.ResourceNotFoundError('Shared folder not found'));
 
-                res.send({
-                    remove: 'ok'
+                dockerSync.stopAndDeleteSyncContainer(folder.containerId, function (err) {
+                    if (err) return next(new restify.InternalError());
+
+                    res.send({
+                        remove: 'ok'
+                    });
                 });
             }
         );
