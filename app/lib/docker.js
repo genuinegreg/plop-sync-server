@@ -38,7 +38,7 @@ Docker.prototype.run = function (env, ports, image, command, cb) {
 
     Object.keys(env).forEach(function (key) {
         cmd.push('-e');
-        cmd.push('key' + '="' + env[key] + '"');
+        cmd.push(key + '="' + env[key] + '"');
     });
 
     ports.forEach(function (port) {
@@ -52,7 +52,7 @@ Docker.prototype.run = function (env, ports, image, command, cb) {
         cmd.push(elt);
     });
 
-    var dockerProcess = sh.exec(cmd.join(' '), {silent: true}, cb);
+    sh.exec(cmd.join(' '), {silent: true}, cb);
 
 };
 
@@ -74,5 +74,3 @@ Docker.prototype.stopAndDelete = function (containerId, cb) {
 
     });
 };
-
-
