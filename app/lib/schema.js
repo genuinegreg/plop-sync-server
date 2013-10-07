@@ -157,6 +157,7 @@ var folderSchema = new Schema({
     secret: { type: String, index: true },
     description: String,
     created: { type: Date, default: Date.now},
+    containerId: String,
     user: { type: String, ref: 'User', index: true}
 });
 var Folder = mongoose.model('Folder', folderSchema);
