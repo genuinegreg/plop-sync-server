@@ -2,3 +2,4 @@ node_modules
 .idea
 btsync-saas-error.log
 btsync-saas.log
+bin
