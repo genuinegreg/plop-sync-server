@@ -85,7 +85,7 @@ server.put( // update existing shared folder
 // Serve static file
 
 server.get(/\/.*/, restify.serveStatic({
-    directory: '../btsync-saas-client/dist/',
+    directory: '../client/dist/',
     default: 'index.html'
 }));
 

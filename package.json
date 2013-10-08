@@ -1,5 +1,5 @@
 {
-  "name": "btsync-saas-server",
+  "name": "plop-sync-server",
   "version": "0.1.2",
   "description": "Btsync-saas rest api",
   "main": "app/index.js",
