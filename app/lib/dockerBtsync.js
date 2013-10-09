@@ -61,7 +61,7 @@ exports.startNewSyncContainer = function (secret, cb) {
         function (code, output) {
             if (code) return cb(new Error('Return code ' + code));
 
-            cb(undefined, output);
+            cb(undefined, (output ? output.trim() : undefined));
         }
     );
 
