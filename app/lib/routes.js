@@ -3,6 +3,7 @@
 var async = require('async');
 var restify = require('restify');
 var schema = require('./schema');
+var logSchema = require('./logSchema');
 var crypto = require('crypto');
 
 var check = require('validator').check;
@@ -110,11 +111,29 @@ exports.Folders = {
             async.map(
                 folders,
                 function iterator(item, cb) {
-                    cb(undefined, {
-                        id: item._id,
-                        name: item.name,
-                        description: item.description,
-                        created: item.created
+
+
+                    async.parallel({
+                        size: function (sizeCallback) {
+                            logSchema.DiskLog.findSize(item.containerId.trim(), false, sizeCallback);
+                        },
+                        dstat: function (dstatCallback) {
+                            logSchema.DstatLog.findDstat(item.containerId.trim(), dstatCallback);
+                        }
+                    }, function parallelCallback(err, results) {
+
+                        if (err) return next(
+                            new restify.InternalError());
+
+                        cb(undefined, {
+                            id: item._id,
+                            name: item.name,
+                            description: item.description,
+                            created: item.created,
+                            size: (results.size ? results.size.size : undefined),
+                            dstat: (results.dstat ? results.dstat.dstat : undefined)
+                        });
+
                     });
                 },
                 function callback(err, results) {
@@ -139,16 +158,40 @@ exports.Folders = {
                 if (!folder) return next(
                     new restify.ResourceNotFoundError('Shared folder not found'));
 
-                res.send({
-                        id: folder._id,
-                        name: folder.name,
-                        secret: folder.secret,
-                        description: folder.description,
-                        created: folder.created
+
+                console.log('folder', folder);
+
+
+                async.parallel({
+                    size: function (sizeCallback) {
+                        logSchema.DiskLog.findSize(folder.containerId.trim(), false, sizeCallback);
+                    },
+                    dstat: function (dstatCallback) {
+                        logSchema.DstatLog.findDstat(folder.containerId.trim(), dstatCallback);
                     }
-                );
+                }, function parallelCallback(err, results) {
+
+                    if (err) return next(
+                        new restify.InternalError());
+
+
+                    res.send({
+                            id: folder._id,
+                            name: folder.name,
+                            secret: folder.secret,
+                            description: folder.description,
+                            created: folder.created,
+                            size: (results.size ? results.size.size : undefined),
+                            dstat: (results.dstat ? results.dstat.dstat : undefined)
+                        }
+                    );
+
+                });
+
+
             }
-        );
+        )
+        ;
 
     },
     create: function createSharedFolder(req, res, next) {
@@ -248,4 +291,5 @@ exports.Folders = {
             }
         );
     }
-};
+}
+;
