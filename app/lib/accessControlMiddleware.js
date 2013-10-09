@@ -10,11 +10,11 @@ var restify = require('restify');
  * Ensure user is loged in
  * @returns {Function}
  */
-exports.authentificated = function () {
+exports.authenticated = function () {
 
     return function (req, res, next) {
 
-        console.info('authentificated()');
+        console.info('authenticated()');
         // if no username is provided juste pass
         if (!req.username || req.username === 'anonymous') return next(new restify.NotAuthorizedError('Missing auth token'));
 

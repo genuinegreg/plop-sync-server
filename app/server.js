@@ -45,11 +45,11 @@ server.use(restify.bodyParser());
 // Users ressources
 
 server.get( // Return user profile
-    '/users/:id', access.authentificated(), access.idRequired(), access.userRestricted(),
+    '/users/:id', access.authenticated(), access.idRequired(), access.userRestricted(),
     route.Users.info);
 
 server.put( // Update user profile
-    '/users/:id', access.authentificated(), access.idRequired(), access.userRestricted(), access.checkEmail(),
+    '/users/:id', access.authenticated(), access.idRequired(), access.userRestricted(), access.checkEmail(),
     route.Users.update);
 
 server.post( // Create a new user
@@ -65,19 +65,19 @@ server.post( // Send credential and return auth token (login)
 // Folders ressources
 
 server.get( // Return folders list
-    '/users/:id/folders/', access.authentificated(), access.idRequired(), access.userRestricted(),
+    '/users/:id/folders/', access.authenticated(), access.idRequired(), access.userRestricted(),
     route.Folders.list);
 server.get( // return folders details
-    '/users/:id/folders/:folderId', access.authentificated(), access.idRequired(), access.folderIdRequired(), access.userRestricted(),
+    '/users/:id/folders/:folderId', access.authenticated(), access.idRequired(), access.folderIdRequired(), access.userRestricted(),
     route.Folders.get);
 server.post( // create a new folder (with or without secret
-    '/users/:id/folders', access.authentificated(), access.idRequired(), access.userRestricted(),
+    '/users/:id/folders', access.authenticated(), access.idRequired(), access.userRestricted(),
     route.Folders.create);
 server.del( // delete a shared folder
-    '/users/:id/folders/:folderId', access.authentificated(), access.idRequired(), access.folderIdRequired(), access.userRestricted(),
+    '/users/:id/folders/:folderId', access.authenticated(), access.idRequired(), access.folderIdRequired(), access.userRestricted(),
     route.Folders.delete);
 server.put( // update existing shared folder
-    '/users/:id/folders/:folderId', access.authentificated(), access.idRequired(), access.folderIdRequired(), access.userRestricted(),
+    '/users/:id/folders/:folderId', access.authenticated(), access.idRequired(), access.folderIdRequired(), access.userRestricted(),
     route.Folders.update);
 
 
