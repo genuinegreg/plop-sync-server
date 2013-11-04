@@ -4,9 +4,7 @@ var async = require('async');
 var restify = require('restify');
 var schema = require('./schema');
 var logSchema = require('./logSchema');
-var crypto = require('crypto');
 
-var check = require('validator').check;
 var sanitize = require('validator').sanitize;
 
 var dockerSync = require('./dockerBtsync');
@@ -157,10 +155,6 @@ exports.Folders = {
 
                 if (!folder) return next(
                     new restify.ResourceNotFoundError('Shared folder not found'));
-
-
-                console.log('folder', folder);
-
 
                 async.parallel({
                     size: function (sizeCallback) {

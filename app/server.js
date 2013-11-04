@@ -32,18 +32,17 @@ var server = restify.createServer({
 });
 
 
-// parse http basic auth header
+// Use Cross Origin Request Sharing middleware
 server.use(restify.CORS({credentials: true}));
 server.use(restify.fullResponse());
+// Use Use HTTP Basic Authentication midleware
 server.use(restify.authorizationParser());
-//server.use(restify.queryParser());
+// Use body parser middleware
 server.use(restify.bodyParser());
-//server.use(access.log());
 
 
 // ***********************
 // Users ressources
-
 server.get( // Return user profile
     '/users/:id', access.authenticated(), access.idRequired(), access.userRestricted(),
     route.Users.info);
@@ -65,7 +64,7 @@ server.post( // Send credential and return auth token (login)
 // Folders ressources
 
 server.get( // Return folders list
-    '/users/:id/folders/', access.authenticated(), access.idRequired(), access.userRestricted(),
+    '/users/:id/folders', access.authenticated(), access.idRequired(), access.userRestricted(),
     route.Folders.list);
 server.get( // return folders details
     '/users/:id/folders/:folderId', access.authenticated(), access.idRequired(), access.folderIdRequired(), access.userRestricted(),
