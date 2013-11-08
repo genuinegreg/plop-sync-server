@@ -7,7 +7,7 @@ var logSchema = require('./logSchema');
 
 var sanitize = require('validator').sanitize;
 
-var dockerSync = require('./dockerBtsync');
+var dockerBtSync = require('./dockerBtsync');
 
 
 exports.Users = {
@@ -194,7 +194,7 @@ exports.Folders = {
         if (req.params.secret) // trim secret input
             req.params.secret = sanitize(req.params.secret).trim();
         else //or generate a mock secret for now
-            req.params.secret = dockerSync.getSecret();
+            req.params.secret = dockerBtSync.getSecret();
 
         if (req.params.name) // trim secret name
             req.params.name = sanitize(req.params.name).trim();
@@ -203,9 +203,12 @@ exports.Folders = {
             req.params.description = sanitize(req.params.description).trim();
 
 
-        dockerSync.startNewSyncContainer(req.params.secret, function (err, containerId) {
+        dockerBtSync.startNewSyncContainer(req.params.secret, function (err, containerId) {
 
-            if (err) return next(new restify.InternalError());
+            if (err) {
+                console.error(err);
+                return next(new restify.InternalError());
+            }
 
             var folder = new schema.Folder({
                 name: req.params.name,
@@ -244,7 +247,7 @@ exports.Folders = {
                 if (!folder)
                     return next(new restify.ResourceNotFoundError('Shared folder not found'));
 
-                dockerSync.stopAndDeleteSyncContainer(folder.containerId, function (err) {
+                dockerBtSync.stopAndDeleteSyncContainer(folder.containerId, function (err) {
                     if (err) return next(new restify.InternalError());
 
                     res.send({

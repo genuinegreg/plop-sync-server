@@ -26,7 +26,7 @@ var access = require('./lib/accessControlMiddleware');
 
 
 var server = restify.createServer({
-    name: 'btsync-saas',
+    name: 'plop-sync',
     log: log
 
 });
