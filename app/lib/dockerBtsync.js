@@ -25,10 +25,9 @@ if (!sh.which('./bin/btsync')) {
  * Return a btsync secret
  * @returns {String} btsync Secret
  */
-function getSecret() {
+exports.getSecret = function getSecret() {
     return sh.exec('./bin/btsync --generate-secret', {silent: true}).output.trim();
-}
-exports.getSecret = getSecret;
+};
 
 
 /**
@@ -59,7 +58,10 @@ exports.startNewSyncContainer = function (secret, cb) {
         'genuinegreg/plop-btsync',
         [],
         function (code, output) {
-            if (code) return cb(new Error('Return code ' + code));
+            if (code) {
+                console.error('Docker return code ' + code);
+                return cb(new Error('Return code ' + code));
+            }
 
             cb(undefined, (output ? output.trim() : undefined));
         }
