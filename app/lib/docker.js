@@ -7,7 +7,8 @@ var sh = require('shelljs');
 
 if (!sh.which('docker')) throw new Error('`docker` command is needed');
 
-function Docker() {
+function Docker(name) {
+    if (name) this.name = name;
 }
 exports.Docker = Docker;
 
@@ -20,6 +21,8 @@ exports.Docker = Docker;
  * @returns {BlogPost.slug.trim|*|string|SchemaType|jQuery.trim}
  */
 Docker.prototype.run = function (env, ports, image, command, cb) {
+
+    var _this = this;
 
     // check parameters
     assert.object(env, 'env');
@@ -35,6 +38,10 @@ Docker.prototype.run = function (env, ports, image, command, cb) {
     cmd.push('-dns');
     cmd.push('8.8.8.8');
     cmd.push('-d');
+    if (_this.name) {
+        cmd.push('-name');
+        cmd.push(_this.name);
+    }
 
     Object.keys(env).forEach(function (key) {
         cmd.push('-e');
