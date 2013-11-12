@@ -270,8 +270,8 @@ exports.Folders = {
                 if (!folder) return next(new restify.ResourceNotFoundError('Shared folder not found'));
 
                 if (req.params.name || req.params.description) {
-                    if (req.params.name) folder.name = sanitize(req.params.name).xss();
-                    if (req.params.description) folder.description = sanitize(req.params.description).xss();
+                    if (req.params.name) folder.name = sanitize(req.params.name).trim();
+                    if (req.params.description) folder.description = sanitize(req.params.description).trim();
 
                     folder.increment();
 
