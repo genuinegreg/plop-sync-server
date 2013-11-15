@@ -7,9 +7,10 @@ var assert = require('assert-plus');
 
 var restify = require('restify');
 
-function AccessControlMiddleware(schema) {
-    assert.object(schema, 'schema');
-    this.schema = schema;
+function AccessControlMiddleware(dataSchema) {
+    console.info('Initialize AccessControllMiddleware');
+    assert.object(dataSchema, 'schema');
+    this.schema = dataSchema;
 }
 exports.AccessControlMiddleware = AccessControlMiddleware;
 

@@ -11,6 +11,8 @@ function Server(
     mailer
     ) {
 
+    console.info('Initialize Server');
+
     var access = accessControlMiddleware;
 
     var log = bunyan.createLogger({
@@ -115,10 +117,14 @@ module.exports = {
         'route': ['type', require('./lib/routes').Route],
         'accessControlMiddleware': ['type', require('./lib/accessControlMiddleware').AccessControlMiddleware],
 
-        'mailer': ['value', 'mailerString'],
-        'schema': ['value', require('./lib/schema')],
-        'logSchema': ['value', require('./lib/logSchema')],
-        'dockerBtSync': ['value', require('./lib/dockerBtsync')]
+
+//        'schema': ['type', require('./lib/schema').DataSchema],
+//        'connection': ['factory', require('./lib/schema').ConnectionFactory],
+
+
+//        'logSchema': ['value', require('./lib/logSchema')],
+        'dockerBtSync': ['value', require('./lib/dockerBtsync')],
+        'mailer': ['value', 'mailerString']
     }
 
 };

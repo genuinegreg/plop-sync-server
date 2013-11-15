@@ -6,13 +6,15 @@ var sanitize = require('validator').sanitize;
 
 
 
-exports.Route = function Route(schema, logSchema, dockerBtSync) {
+exports.Route = function Route(dataSchema, logSchema, dockerBtSync) {
+
+    console.info('Initialize Route');
     var _this = this;
 
     _this.Users = {
         info: function getUserInfo(req, res, next) {
 
-            schema.User.findOne({_id: req.params.id}, function (err, user) {
+            dataSchema.User.findOne({_id: req.params.id}, function (err, user) {
 
                     if (err) return next(new restify.InternalError());
                     if (!user) return next(new restify.ResourceNotFoundError());
@@ -31,7 +33,7 @@ exports.Route = function Route(schema, logSchema, dockerBtSync) {
         update: function updateUser(req, res, next) {
             console.log('updateUser()');
 
-            schema.User.findOne(
+            dataSchema.User.findOne(
                 {
                     _id: req.params.id
                 },
@@ -65,7 +67,7 @@ exports.Route = function Route(schema, logSchema, dockerBtSync) {
         },
         create: function createUser(req, res, next) {
 
-            schema.User.create(req.params.id, req.params.password, function (err, user) {
+            dataSchema.User.create(req.params.id, req.params.password, function (err, user) {
 
                 console.log('create() callback');
 
@@ -83,7 +85,11 @@ exports.Route = function Route(schema, logSchema, dockerBtSync) {
         },
         login: function login(req, res, next) {
 
-            schema.User.login(req.params.id, req.params.password, function (err, user) {
+            console.log('login');
+
+            dataSchema.User.login(req.params.id, req.params.password, function (err, user) {
+
+                console.log(user);
 
                 if (err) return next(new restify.InternalError());
                 if (!user) return next(new restify.InvalidCredentialsError());
@@ -143,7 +149,7 @@ exports.Route = function Route(schema, logSchema, dockerBtSync) {
         },
         get: function getSharedFolderInformation(req, res, next) {
             console.log('getSharedFolderInformation()');
-            schema.Folder.findOne(
+            dataSchema.Folder.findOne(
                 {
                     user: req.user._id,
                     _id: req.params.folderId
@@ -209,7 +215,7 @@ exports.Route = function Route(schema, logSchema, dockerBtSync) {
                     return next(new restify.InternalError());
                 }
 
-                var folder = new schema.Folder({
+                var folder = new dataSchema.Folder({
                     name: req.params.name,
                     secret: req.params.secret,
                     description: req.params.description,
@@ -235,7 +241,7 @@ exports.Route = function Route(schema, logSchema, dockerBtSync) {
         delete: function deleteSharedFolder(req, res, next) {
             console.log('deleteSharedFolder()');
 
-            schema.Folder.findOneAndRemove(
+            dataSchema.Folder.findOneAndRemove(
                 {
                     user: req.user._id,
                     _id: req.params.folderId
@@ -259,7 +265,7 @@ exports.Route = function Route(schema, logSchema, dockerBtSync) {
         update: function updateSharedFolder(req, res, next) {
             console.log('updateSharedFolder()');
 
-            schema.Folder.findOne(
+            dataSchema.Folder.findOne(
                 {
                     user: req.params.id,
                     _id: req.params.folderId
