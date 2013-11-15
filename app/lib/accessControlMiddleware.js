@@ -3,14 +3,23 @@
 var check = require('validator').check;
 var sanitize = require('validator').sanitize;
 
-var schema = require('./schema');
+var assert = require('assert-plus');
+
 var restify = require('restify');
+
+function AccessControlMiddleware(dataSchema) {
+    console.info('Initialize AccessControllMiddleware');
+    assert.object(dataSchema, 'schema');
+    this.schema = dataSchema;
+}
 
 /**
  * Ensure user is loged in
  * @returns {Function}
  */
-exports.authenticated = function () {
+AccessControlMiddleware.prototype.authenticated = function () {
+
+    var schema = this.schema;
 
     return function (req, res, next) {
 
@@ -37,7 +46,7 @@ exports.authenticated = function () {
  * Ensure Ensure authenticated user is accessing his own ressources
  * @returns {Function}
  */
-exports.userRestricted = function () {
+AccessControlMiddleware.prototype.userRestricted = function () {
     return function (req, res, next) {
         if (req.params.id !== req.user._id) return next(
             new restify.NotAuthorizedError('You are not allowed to access other users profile'));
@@ -49,7 +58,7 @@ exports.userRestricted = function () {
  * Url param :id is required
  * @returns {Function}
  */
-exports.idRequired = function () {
+AccessControlMiddleware.prototype.idRequired = function () {
     return function (req, res, next) {
         if (!req.params.id)
             return next(new restify.MissingParameterError('missing :id parameter'));
@@ -63,7 +72,7 @@ exports.idRequired = function () {
  * Url param :folderId is required
  * @returns {Function}
  */
-exports.folderIdRequired = function () {
+AccessControlMiddleware.prototype.folderIdRequired = function () {
     return function (req, res, next) {
         if (!req.params.folderId)
             return next(new restify.MissingParameterError('missing :folderId parameter'));
@@ -77,7 +86,7 @@ exports.folderIdRequired = function () {
  * Post param :password is required
  * @returns {Function}
  */
-exports.passwordRequired = function () {
+AccessControlMiddleware.prototype.passwordRequired = function () {
     return function (req, res, next) {
         if (!req.params.password)
             return next(new restify.MissingParameterError('missing :password parameter'));
@@ -92,7 +101,7 @@ exports.passwordRequired = function () {
  * Ensure it's not missing and is a valid email
  * @returns {Function}
  */
-exports.checkEmail = function () {
+AccessControlMiddleware.prototype.checkEmail = function () {
     return function (req, res, next) {
         if (!req.params.email)
             return next(new restify.MissingParameterError('missing :email parameter'));
@@ -110,7 +119,7 @@ exports.checkEmail = function () {
     };
 };
 
-exports.log = function log() {
+AccessControlMiddleware.prototype.log = function log() {
     return function (req, res, next) {
         req.log.info([
             req.route.method,
@@ -121,4 +130,8 @@ exports.log = function log() {
         next();
 
     };
+};
+
+module.exports = {
+    'accessControlMiddleware': ['type', AccessControlMiddleware]
 };
