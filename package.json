@@ -18,6 +18,7 @@
     "bunyan": "~0.22.0",
     "shelljs": "~0.2.6",
     "assert-plus": "~0.1.4",
-    "dockerode": "~0.1.5"
+    "dockerode": "~0.1.5",
+    "di": "0.0.1"
   }
 }
