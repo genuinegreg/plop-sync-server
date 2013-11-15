@@ -3,9 +3,12 @@
 var check = require('validator').check;
 var sanitize = require('validator').sanitize;
 
+var assert = require('assert-plus');
+
 var restify = require('restify');
 
 function AccessControlMiddleware(schema) {
+    assert.object(schema, 'schema');
     this.schema = schema;
 }
 exports.AccessControlMiddleware = AccessControlMiddleware;
