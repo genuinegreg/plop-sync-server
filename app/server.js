@@ -113,8 +113,8 @@ module.exports = {
     Server: Server,
     ServerModule: {
         'route': ['type', require('./lib/routes').Route],
+        'accessControlMiddleware': ['type', require('./lib/accessControlMiddleware').AccessControlMiddleware],
 
-        'accessControlMiddleware': ['value', require('./lib/accessControlMiddleware')],
         'mailer': ['value', 'mailerString'],
         'schema': ['value', require('./lib/schema')],
         'logSchema': ['value', require('./lib/logSchema')],
