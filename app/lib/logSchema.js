@@ -1,5 +1,7 @@
 'use strict';
 
+
+require('colors');
 // mongo stuff
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
@@ -7,11 +9,10 @@ var Schema = mongoose.Schema;
 var assert = require('assert-plus');
 
 
-if (!process.env.DB_HOST) throw new Error('Missing env variable DB_HOST');
-if (!process.env.DB_NAME) throw new Error('Missing env variable DB_NAME');
-
 exports.LogSchema = function (connection) {
-    console.log('Initialize LogSchema');
+    console.log('Initialize [LogSchema]'.green);
+
+    assert.ok(connection, 'LogShema connection');
 
     var _this = this;
 

@@ -1,5 +1,6 @@
 'use strict';
 
+require('colors');
 var check = require('validator').check;
 var sanitize = require('validator').sanitize;
 
@@ -8,7 +9,7 @@ var assert = require('assert-plus');
 var restify = require('restify');
 
 function AccessControlMiddleware(dataSchema) {
-    console.info('Initialize AccessControllMiddleware');
+    console.info('Initialize [AccessControllMiddleware]'.green);
     assert.object(dataSchema, 'schema');
     this.schema = dataSchema;
 }
@@ -23,7 +24,7 @@ AccessControlMiddleware.prototype.authenticated = function () {
 
     return function (req, res, next) {
 
-        console.info('authenticated()');
+        console.info('authenticated()'.grey);
         // if no username is provided juste pass
         if (!req.username || req.username === 'anonymous') return next(new restify.NotAuthorizedError('Missing auth token'));
 
