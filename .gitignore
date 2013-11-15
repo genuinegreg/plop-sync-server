@@ -3,3 +3,4 @@ node_modules
 btsync-saas-error.log
 btsync-saas.log
 bin
+*.orig
