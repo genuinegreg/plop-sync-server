@@ -1,5 +1,7 @@
 'use strict';
 
+require('colors');
+var assert = require('assert-plus');
 // crypto stuff
 var bcrypt = require('bcrypt');
 var crypto = require('crypto');
@@ -12,10 +14,13 @@ var Schema = mongoose.Schema;
 
 
 function ConnectionFactory(
-    databaseHost /* config.database.host */,
-    databaseName /* config.database.name */) {
+    host /* config.database.host */,
+    name /* config.database.name */) {
 
-    var connectionUrl = 'mongodb://' + databaseHost + '/' + databaseName;
+    assert.string(host, 'ConnectionFactory host');
+    assert.string(name, 'ConnectionFactory name');
+
+    var connectionUrl = 'mongodb://' + host + '/' + name;
 
     console.log('ConnectionFactory() : Connecting to', connectionUrl);
     return mongoose.createConnection(connectionUrl);
@@ -27,7 +32,7 @@ function DataSchema(
     TOKEN_STRENGTH /* config.session.tokenStrength */ ) {
 
 
-    console.log('Initialize [DataSchema]');
+    console.log('Initialize [DataSchema]'.green);
     var _this = this;
 
 
