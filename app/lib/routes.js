@@ -1,5 +1,6 @@
 'use strict';
 
+require('colors');
 var async = require('async');
 var restify = require('restify');
 var sanitize = require('validator').sanitize;
@@ -8,7 +9,7 @@ var sanitize = require('validator').sanitize;
 
 function Routes(dataSchema, logSchema, bittorrentSync) {
 
-    console.info('Initialize [Routes]');
+    console.info('Initialize [Routes]'.green);
     var _this = this;
 
     _this.Users = {

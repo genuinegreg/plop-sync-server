@@ -1,12 +1,12 @@
 'use strict';
 
-
+require('colors');
 var assert = require('assert-plus');
 var sh = require('shelljs');
 
 
 function BittorrentSync(docker) {
-    console.info('Initialize BittorrentSync');
+    console.info('Initialize [BittorrentSync]'.green);
 
     this.docker = docker;
 

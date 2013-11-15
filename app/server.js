@@ -1,6 +1,6 @@
 'use strict';
 
-
+require('colors');
 var restify = require('restify');
 var bunyan = require('bunyan');
 
@@ -11,7 +11,7 @@ function Server(
     mailer
     ) {
 
-    console.info('Initialize Server');
+    console.info('Initialize [Server]'.green);
 
     var access = accessControlMiddleware;
 

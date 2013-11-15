@@ -3,12 +3,22 @@
  */
 
 'use strict';
+require('colors');
 var assert = require('assert-plus');
 var di = require('di');
 
 
-assert.string(process.env.DB_HOST, 'DB_HOST env');
-assert.string(process.env.DB_NAME, 'DB_NAME  env');
+var opt = require('node-getopt').create([
+
+        ['', 'db-host=', 'Database host'],
+        ['', 'db-name=', 'Database name'],
+        ['', 'mail-host=', 'Smtp host'],
+        ['', 'mail-user=', 'Smtp user'],
+        ['', 'mail-pwd=', 'Smtp password'],
+        ['h', 'help', 'Display help']
+    ])
+    .bindHelp()
+    .parseSystem();
 
 
 var config = {
@@ -16,20 +26,25 @@ var config = {
         name: 'plop-sync-api'
     },
     database: {
-        host: process.env.DB_HOST,
-        name: process.env.DB_NAME
+        host: opt.options['db-host'] || '127.0.0.1',
+        name: opt.options['db-name'] || 'default'
     },
     session: {
         tokenStrength: 64
     },
     bcrypt: {
         strength: 10
+    },
+    mailer: {
+        user: opt.options['mail-user'] || undefined,
+        password: opt.options['mail-pwd'] || undefined,
+        host: opt.options['mail-host'] || undefined
     }
 };
 
+
 var bootstrapModule = {
-    config: ['value', config],
-    'mailer': ['value', 'MailerPlaceholder']
+    config: ['value', config]
 };
 
 
@@ -41,6 +56,7 @@ var injector = new di.Injector(
         require('./lib/schema'),
         require('./lib/docker'),
         require('./lib/bittorrentSync'),
+        require('./lib/mailer'),
         bootstrapModule
     ]);
 

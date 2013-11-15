@@ -18,7 +18,9 @@
     "bunyan": "~0.22.0",
     "shelljs": "~0.2.6",
     "assert-plus": "~0.1.4",
-    "dockerode": "~0.1.5",
-    "di": "0.0.1"
+    "emailjs": "~0.3.6",
+    "di": "~0.0.1",
+    "node-getopt": "~0.2.3",
+    "colors": "~0.6.2"
   }
 }
