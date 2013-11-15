@@ -1,23 +1,24 @@
 'use strict';
 
 
-if (!process.env.DB_HOST) throw new Error('Missing env variable DB_HOST');
-if (!process.env.DB_NAME) throw new Error('Missing env variable DB_NAME');
-
-
 var assert = require('assert-plus');
 var sh = require('shelljs');
 
-var Docker = new require('./docker').Docker;
-var docker = new Docker();
 
-// download and extract btsync exec on launch
-if (!sh.which('./bin/btsync')) {
-    sh.mkdir('-p', 'bin');
-    sh.cd('bin');
-    sh.exec('wget -q http://download-lb.utorrent.com/endpoint/btsync/os/linux-x64/track/stable -O btsync.tar.gz', {silent: true});
-    sh.exec('tar -xvf btsync.tar.gz', {silent: true});
-    sh.cd('..');
+function BittorrentSync(docker) {
+    console.info('Initialize BittorrentSync');
+
+    this.docker = docker;
+
+    // download and extract btsync exec on launch
+    if (!sh.which('./bin/btsync')) {
+        sh.mkdir('-p', 'bin');
+        sh.cd('bin');
+        sh.exec('wget -q http://download-lb.utorrent.com/endpoint/btsync/os/linux-x64/track/stable -O btsync.tar.gz', {silent: true});
+        sh.exec('tar -xvf btsync.tar.gz', {silent: true});
+        sh.cd('..');
+    }
+
 }
 
 
@@ -25,7 +26,7 @@ if (!sh.which('./bin/btsync')) {
  * Return a btsync secret
  * @returns {String} btsync Secret
  */
-exports.getSecret = function getSecret() {
+BittorrentSync.prototype.getSecret = function getSecret() {
     return sh.exec('./bin/btsync --generate-secret', {silent: true}).output.trim();
 };
 
@@ -36,15 +37,17 @@ exports.getSecret = function getSecret() {
  * @param dbHost mongodb logs host
  * @param cb
  */
-exports.startNewSyncContainer = function (secret, cb) {
+BittorrentSync.prototype.startNewSyncContainer = function (secret, cb) {
 
     assert.optionalString(secret);
     assert.func(cb);
 
-    if (!secret) secret = getSecret();
+    var _this = this;
+
+    if (!secret) secret = _this.getSecret();
 
 
-    docker.run(
+    _this.docker.run(
         {
             NAME: 'plop.io_sync',
             SECRET: secret,
@@ -74,8 +77,11 @@ exports.startNewSyncContainer = function (secret, cb) {
  * @param containerId
  * @param cb
  */
-exports.stopAndDeleteSyncContainer = function (containerId, cb) {
-    docker.stopAndDelete(containerId, function (code, results) {
+BittorrentSync.prototype.stopAndDeleteSyncContainer = function (containerId, cb) {
+
+    var _this = this;
+
+    _this.docker.stopAndDelete(containerId, function (code, results) {
 
         if (code) return cb(new Error('Return code ' + code));
 
@@ -87,4 +93,9 @@ exports.stopAndDeleteSyncContainer = function (containerId, cb) {
 
         cb(undefined);
     });
+};
+
+
+module.exports = {
+    bittorrentSync: ['type', BittorrentSync]
 };

@@ -6,7 +6,7 @@ var bunyan = require('bunyan');
 
 function Server(
     name /* config.server.name */,
-    route,
+    routes,
     accessControlMiddleware,
     mailer
     ) {
@@ -52,19 +52,19 @@ function Server(
     // Users ressources
     server.get( // Return user profile
         '/users/:id', access.authenticated(), access.idRequired(), access.userRestricted(),
-        route.Users.info);
+        routes.Users.info);
 
     server.put( // Update user profile
         '/users/:id', access.authenticated(), access.idRequired(), access.userRestricted(), access.checkEmail(),
-        route.Users.update);
+        routes.Users.update);
 
     server.post( // Create a new user
         '/users/:id/create', access.idRequired(), access.passwordRequired(),
-        route.Users.create);
+        routes.Users.create);
 
     server.post( // Send credential and return auth token (login)
         '/users/:id/login', access.idRequired(), access.passwordRequired(),
-        route.Users.login);
+        routes.Users.login);
 
 
     // ************************
@@ -72,19 +72,19 @@ function Server(
 
     server.get( // Return folders list
         '/users/:id/folders', access.authenticated(), access.idRequired(), access.userRestricted(),
-        route.Folders.list);
+        routes.Folders.list);
     server.get( // return folders details
         '/users/:id/folders/:folderId', access.authenticated(), access.idRequired(), access.folderIdRequired(), access.userRestricted(),
-        route.Folders.get);
+        routes.Folders.get);
     server.post( // create a new folder (with or without secret
         '/users/:id/folders', access.authenticated(), access.idRequired(), access.userRestricted(),
-        route.Folders.create);
+        routes.Folders.create);
     server.del( // delete a shared folder
         '/users/:id/folders/:folderId', access.authenticated(), access.idRequired(), access.folderIdRequired(), access.userRestricted(),
-        route.Folders.delete);
+        routes.Folders.delete);
     server.put( // update existing shared folder
         '/users/:id/folders/:folderId', access.authenticated(), access.idRequired(), access.folderIdRequired(), access.userRestricted(),
-        route.Folders.update);
+        routes.Folders.update);
 
 
     // ***********************
@@ -94,10 +94,6 @@ function Server(
         directory: '../client/dist/',
         default: 'index.html'
     }));
-
-    // start server
-
-
 
 }
 
@@ -112,19 +108,5 @@ Server.prototype.start = function() {
 
 
 module.exports = {
-    Server: Server,
-    ServerModule: {
-        'route': ['type', require('./lib/routes').Route],
-        'accessControlMiddleware': ['type', require('./lib/accessControlMiddleware').AccessControlMiddleware],
-
-
-//        'schema': ['type', require('./lib/schema').DataSchema],
-//        'connection': ['factory', require('./lib/schema').ConnectionFactory],
-
-
-//        'logSchema': ['value', require('./lib/logSchema')],
-        'dockerBtSync': ['value', require('./lib/dockerBtsync')],
-        'mailer': ['value', 'mailerString']
-    }
-
+    'server': ['type', Server]
 };

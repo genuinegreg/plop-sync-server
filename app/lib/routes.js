@@ -6,9 +6,9 @@ var sanitize = require('validator').sanitize;
 
 
 
-exports.Route = function Route(dataSchema, logSchema, dockerBtSync) {
+function Routes(dataSchema, logSchema, bittorrentSync) {
 
-    console.info('Initialize Route');
+    console.info('Initialize [Routes]');
     var _this = this;
 
     _this.Users = {
@@ -199,7 +199,7 @@ exports.Route = function Route(dataSchema, logSchema, dockerBtSync) {
             if (req.params.secret) // trim secret input
                 req.params.secret = sanitize(req.params.secret).trim();
             else //or generate a mock secret for now
-                req.params.secret = dockerBtSync.getSecret();
+                req.params.secret = bittorrentSync.getSecret();
 
             if (req.params.name) // trim secret name
                 req.params.name = sanitize(req.params.name).trim();
@@ -208,7 +208,7 @@ exports.Route = function Route(dataSchema, logSchema, dockerBtSync) {
                 req.params.description = sanitize(req.params.description).trim();
 
 
-            dockerBtSync.startNewSyncContainer(req.params.secret, function (err, containerId) {
+            bittorrentSync.startNewSyncContainer(req.params.secret, function (err, containerId) {
 
                 if (err) {
                     console.error(err);
@@ -252,7 +252,7 @@ exports.Route = function Route(dataSchema, logSchema, dockerBtSync) {
                     if (!folder)
                         return next(new restify.ResourceNotFoundError('Shared folder not found'));
 
-                    dockerBtSync.stopAndDeleteSyncContainer(folder.containerId, function (err) {
+                    bittorrentSync.stopAndDeleteSyncContainer(folder.containerId, function (err) {
                         if (err) return next(new restify.InternalError());
 
                         res.send({
@@ -295,3 +295,7 @@ exports.Route = function Route(dataSchema, logSchema, dockerBtSync) {
         }
     };
 }
+
+module.exports = {
+    'routes': ['type', Routes]
+};

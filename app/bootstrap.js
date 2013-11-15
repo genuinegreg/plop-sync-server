@@ -29,14 +29,18 @@ var config = {
 
 var bootstrapModule = {
     config: ['value', config],
-    'server': ['type', require('./server').Server]
+    'mailer': ['value', 'MailerPlaceholder']
 };
 
 
 var injector = new di.Injector(
     [
-        require('./server').ServerModule,
-        require('./lib/schema').SchemaModule,
+        require('./server'),
+        require('./lib/routes'),
+        require('./lib/accessControlMiddleware'),
+        require('./lib/schema'),
+        require('./lib/docker'),
+        require('./lib/bittorrentSync'),
         bootstrapModule
     ]);
 

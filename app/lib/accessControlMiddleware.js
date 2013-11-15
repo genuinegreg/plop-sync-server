@@ -12,7 +12,6 @@ function AccessControlMiddleware(dataSchema) {
     assert.object(dataSchema, 'schema');
     this.schema = dataSchema;
 }
-exports.AccessControlMiddleware = AccessControlMiddleware;
 
 /**
  * Ensure user is loged in
@@ -131,4 +130,8 @@ AccessControlMiddleware.prototype.log = function log() {
         next();
 
     };
+};
+
+module.exports = {
+    'accessControlMiddleware': ['type', AccessControlMiddleware]
 };

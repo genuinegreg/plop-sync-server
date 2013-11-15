@@ -27,7 +27,7 @@ function DataSchema(
     TOKEN_STRENGTH /* config.session.tokenStrength */ ) {
 
 
-    console.log('Initialize DataSchema');
+    console.log('Initialize [DataSchema]');
     var _this = this;
 
 
@@ -174,7 +174,7 @@ function DataSchema(
 }
 
 
-exports.SchemaModule = {
+module.exports = {
     connection: ['factory', ConnectionFactory],
     dataSchema: ['type', DataSchema],
     logSchema: ['type', require('./logSchema').LogSchema]
