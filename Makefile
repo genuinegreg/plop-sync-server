@@ -7,3 +7,6 @@ npmInstall:
 
 npmUpdate:
 	npm update
+
+clean:
+	rm -R bin
