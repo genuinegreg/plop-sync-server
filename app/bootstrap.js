@@ -39,6 +39,9 @@ var config = {
         user: opt.options['mail-user'] || undefined,
         password: opt.options['mail-pwd'] || undefined,
         host: opt.options['mail-host'] || undefined
+    },
+    docker: {
+        volumePath: '/data/plop-sync/volumes'
     }
 };
 
