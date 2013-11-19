@@ -119,10 +119,10 @@ function Routes(dataSchema, logSchema, bittorrentSync) {
 
                         async.parallel({
                             size: function (sizeCallback) {
-                                logSchema.DiskLog.findSize(item.containerId.trim(), false, sizeCallback);
+                                logSchema.DiskLog.findSize(item.containerId, false, sizeCallback);
                             },
                             dstat: function (dstatCallback) {
-                                logSchema.DstatLog.findDstat(item.containerId.trim(), dstatCallback);
+                                logSchema.DstatLog.findDstat(item.containerId, dstatCallback);
                             }
                         }, function parallelCallback(err, results) {
 
@@ -164,10 +164,10 @@ function Routes(dataSchema, logSchema, bittorrentSync) {
 
                     async.parallel({
                         size: function (sizeCallback) {
-                            logSchema.DiskLog.findSize(folder.containerId.trim(), false, sizeCallback);
+                            logSchema.DiskLog.findSize(folder.containerId, false, sizeCallback);
                         },
                         dstat: function (dstatCallback) {
-                            logSchema.DstatLog.findDstat(folder.containerId.trim(), dstatCallback);
+                            logSchema.DstatLog.findDstat(folder.containerId, dstatCallback);
                         }
                     }, function parallelCallback(err, results) {
 
@@ -197,6 +197,7 @@ function Routes(dataSchema, logSchema, bittorrentSync) {
         create: function createSharedFolder(req, res, next) {
             console.log('createSharedFolder()');
 
+            // validation
             if (req.params.secret) // trim secret input
                 req.params.secret = sanitize(req.params.secret).trim();
             else //or generate a mock secret for now
