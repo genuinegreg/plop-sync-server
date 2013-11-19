@@ -12,7 +12,7 @@ var assert = require('assert-plus');
 exports.LogSchema = function (connection) {
     console.log('Initialize [LogSchema]'.green);
 
-    assert.ok(connection, 'LogShema connection');
+    assert.object(connection, 'LogShema connection');
 
     var _this = this;
 
