@@ -71,7 +71,7 @@ Docker.prototype.stopAndDelete = function (containerId, cb) {
             sh.exec('docker rm -v ' + containerId, deleteCallback);
         }
     ], function (err, results) {
-        cb(err, results);
+        cb(err, results.map(function(elt) {return elt.trim();}));
 
     });
 };
