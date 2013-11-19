@@ -24,7 +24,10 @@ AccessControlMiddleware.prototype.authenticated = function () {
 
     return function (req, res, next) {
 
-        console.info('authenticated()'.grey);
+        var log = req.log.child({
+            middleware: 'authenticated'
+        });
+
         // if no username is provided juste pass
         if (!req.username || req.username === 'anonymous') return next(new restify.NotAuthorizedError('Missing auth token'));
 
@@ -34,8 +37,14 @@ AccessControlMiddleware.prototype.authenticated = function () {
         schema.User.findOne({token: userToken},
             function (err, user) {
 
-                if (err) return next(new restify.InternalError());
-                if (!user) return next(new restify.InvalidCredentialsError('Invalid credential token'));
+                if (err) {
+                    log.error(err, 'database error');
+                    return next(new restify.InternalError());
+                }
+                if (!user) {
+                    log.info('Invalid credential');
+                    return next(new restify.InvalidCredentialsError('Invalid credential token'));
+                }
 
                 req.user = user;
                 next();
@@ -49,8 +58,13 @@ AccessControlMiddleware.prototype.authenticated = function () {
  */
 AccessControlMiddleware.prototype.userRestricted = function () {
     return function (req, res, next) {
-        if (req.params.id !== req.user._id) return next(
-            new restify.NotAuthorizedError('You are not allowed to access other users profile'));
+        if (req.params.id !== req.user._id) {
+            req.log.error({
+                middleware: 'userRestricted'
+            }, 'User not allowed');
+            return next(
+                new restify.NotAuthorizedError('You are not allowed to access other users profile'));
+        }
         next();
     };
 };
@@ -61,8 +75,12 @@ AccessControlMiddleware.prototype.userRestricted = function () {
  */
 AccessControlMiddleware.prototype.idRequired = function () {
     return function (req, res, next) {
-        if (!req.params.id)
+        if (!req.params.id) {
+            req.log.error({
+                middleware: 'idRequired'
+            }, 'Missing :id parameter');
             return next(new restify.MissingParameterError('missing :id parameter'));
+        }
 
         req.params.id = sanitize(req.params.id).trim();
         next();
@@ -75,8 +93,12 @@ AccessControlMiddleware.prototype.idRequired = function () {
  */
 AccessControlMiddleware.prototype.folderIdRequired = function () {
     return function (req, res, next) {
-        if (!req.params.folderId)
+        if (!req.params.folderId) {
+            req.log.error({
+                middleware: 'folderIdRequired'
+            }, 'missing :folderId parameter');
             return next(new restify.MissingParameterError('missing :folderId parameter'));
+        }
 
         req.params.folderId = sanitize(req.params.folderId).trim();
         next();
@@ -89,8 +111,12 @@ AccessControlMiddleware.prototype.folderIdRequired = function () {
  */
 AccessControlMiddleware.prototype.passwordRequired = function () {
     return function (req, res, next) {
-        if (!req.params.password)
+        if (!req.params.password) {
+            req.log.error({
+                middleware: 'passwordRequired'
+            }, 'missing :password parameter');
             return next(new restify.MissingParameterError('missing :password parameter'));
+        }
 
         req.params.password = sanitize(req.params.password).trim();
         next();
@@ -104,8 +130,12 @@ AccessControlMiddleware.prototype.passwordRequired = function () {
  */
 AccessControlMiddleware.prototype.checkEmail = function () {
     return function (req, res, next) {
-        if (!req.params.email)
+        if (!req.params.email){
+            req.log.error({
+                middleware: 'checkEmail'
+            }, 'missing :email parameter');
             return next(new restify.MissingParameterError('missing :email parameter'));
+        }
 
         req.params.email = sanitize(req.params.email).trim();
 
@@ -113,23 +143,13 @@ AccessControlMiddleware.prototype.checkEmail = function () {
             check(req.params.email).isEmail();
         }
         catch (err) {
+            req.log.error({
+                middleware: 'checkEmail'
+            }, 'invalid :email parameter');
             return next(new restify.InvalidArgumentError('invalid :email parameter'));
         }
 
         next();
-    };
-};
-
-AccessControlMiddleware.prototype.log = function log() {
-    return function (req, res, next) {
-        req.log.info([
-            req.route.method,
-            req.route.path,
-            req.route.versions
-        ].join('; '));
-
-        next();
-
     };
 };
 

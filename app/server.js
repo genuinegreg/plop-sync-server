@@ -2,37 +2,21 @@
 
 require('colors');
 var restify = require('restify');
+var logger = require('./lib/logger');
 var bunyan = require('bunyan');
 
-function Server(
-    name /* config.server.name */,
-    routes,
-    accessControlMiddleware,
-    mailer
-    ) {
-
-    console.info('Initialize [Server]'.green);
+function Server(name /* config.server.name */,
+                routes,
+                accessControlMiddleware,
+                mailer) {
 
     var access = accessControlMiddleware;
 
-    var log = bunyan.createLogger({
-        name: 'plop-sync',
-        streams: [
-            {
-                level: 'info',
-                path: './btsync-saas.log',       // log INFO and above to btsync-saas.log
-                stream: process.stdout
-            },
-            {
-                level: 'error',
-                path: './btsync-saas-error.log'  // log ERROR and above to btsync-saas-error.log
-            }
-        ]
-    });
+    logger.info('Initialize [Server]');
 
     var server  = restify.createServer({
         name: name,
-        log: log
+        log: logger
 
     });
 
@@ -46,6 +30,20 @@ function Server(
     server.use(restify.authorizationParser());
     // Use body parser middleware
     server.use(restify.bodyParser());
+
+    server.use(function(req, res, next) {
+        req.log = req.log.child({
+            req: {
+                method: req.method,
+                url: req.url,
+                id: req._id,
+                remoteAddress: req.connection.remoteAddress,
+                remotePort: req.connection.remotePort,
+                user: req.user ? req.user._id: undefined
+            }
+        });
+        next();
+    });
 
 
     // ***********************
@@ -101,7 +99,7 @@ Server.prototype.start = function() {
     var server = this.server;
 
     this.server.listen(8080, function () {
-        console.log('%s listening at %s', server.name, server.url);
+        logger.info('%s listening at %s', server.name, server.url);
     });
 };
 
