@@ -210,58 +210,69 @@ function Routes(dataSchema, logSchema, bittorrentSync) {
                 req.params.description = sanitize(req.params.description).trim();
 
 
-            bittorrentSync.startNewSyncContainer(req.params.secret, function (err, containerId) {
+            // create a new folder data instance
+            var folder = new dataSchema.Folder({
+                name: req.params.name,
+                secret: req.params.secret,
+                description: req.params.description,
+//                containerId: containerId,
+                user: req.user._id
+            });
 
-                if (err) {
-                    console.error(err);
+            // save folder
+            folder.save(function(err, folder) {
+                if (err || !folder) {
+                    console.log('database error', err);
                     return next(new restify.InternalError());
                 }
 
-                var folder = new dataSchema.Folder({
-                    name: req.params.name,
-                    secret: req.params.secret,
-                    description: req.params.description,
-                    containerId: containerId,
-                    user: req.user._id
+                console.log(folder);
+
+                // send response to client
+                res.send({
+                    id: folder._id,
+                    name: folder.name,
+                    secret: folder.secret
                 });
 
-                folder.save(function (err, folder) {
-                    if (err) return next(new restify.InternalError());
-
-                    console.log(folder);
-
-                    res.send({
-                        id: folder._id,
-                        name: folder.name,
-                        secret: folder.secret
-                    });
-
+                // then asynchronously start a new container
+                bittorrentSync.startNewSyncContainer(folder, function(err) {
+                    if (!err) return;
+                    console.log(err);
                 });
+
             });
 
         },
         delete: function deleteSharedFolder(req, res, next) {
             console.log('deleteSharedFolder()');
 
+            function dataBaseDeletionHandler(err, folder) {
+                if (err) {
+                    console.log('Error : dataSchema.Folder.findOneAndRemove()', err);
+                    return next(new restify.InternalError());
+                }
+
+                if (!folder) return next(new restify.ResourceNotFoundError('Shared folder not found'));
+
+                // send result back to the client
+                res.send({
+                    remove: 'ok'
+                });
+
+                // and then asynchronously delete the container
+                bittorrentSync.stopAndDeleteSyncContainer(folder, function(err) {
+                    if (!err) return;
+                    console.error('Error: bittorrentSync.stopAndDeleteSyncContainer() unable to emove container', err);
+                });
+            }
+
             dataSchema.Folder.findOneAndRemove(
                 {
                     user: req.user._id,
                     _id: req.params.folderId
                 },
-                function (err, folder) {
-                    if (err) return next(new restify.InternalError());
-
-                    if (!folder)
-                        return next(new restify.ResourceNotFoundError('Shared folder not found'));
-
-                    bittorrentSync.stopAndDeleteSyncContainer(folder.containerId, function (err) {
-                        if (err) return next(new restify.InternalError());
-
-                        res.send({
-                            remove: 'ok'
-                        });
-                    });
-                }
+                dataBaseDeletionHandler
             );
         },
         update: function updateSharedFolder(req, res, next) {
