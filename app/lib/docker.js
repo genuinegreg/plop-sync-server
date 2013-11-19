@@ -18,13 +18,18 @@ function Docker() {
  * @param command
  * @returns {BlogPost.slug.trim|*|string|SchemaType|jQuery.trim}
  */
-Docker.prototype.run = function (env, ports, image, command, cb) {
+Docker.prototype.run = function (env, ports, volumes, image, command, cb) {
+    volumes = volumes || [];
+    ports = ports || [];
+    env = env || {};
+    command = command || [];
 
     var _this = this;
 
     // check parameters
     assert.object(env, 'env');
     assert.arrayOfString(ports, 'ports');
+    assert.arrayOfString(volumes, 'volumes');
     assert.string(image, 'image');
     assert.arrayOfString(command, 'command');
     assert.func(cb, 'callback');
@@ -45,6 +50,11 @@ Docker.prototype.run = function (env, ports, image, command, cb) {
     ports.forEach(function (port) {
         cmd.push('-p');
         cmd.push(port);
+    });
+
+    volumes.forEach(function (volume) {
+        cmd.push('-v');
+        cmd.push(volume);
     });
 
     cmd.push(image);
