@@ -30,9 +30,11 @@ exports.LogSchema = function (connection) {
     });
     diskLogSchema.statics.findSize = function (containerId, apparent, cb) {
 
-        assert.string(containerId);
+        assert.optionalString(containerId);
         assert.optionalBool(apparent);
         assert.optionalFunc(cb);
+
+        if (!containerId) return cb();
 
         var _this = this;
 
@@ -77,8 +79,10 @@ exports.LogSchema = function (connection) {
     });
     dstatLogSchema.statics.findDstat = function (containerId, cb) {
 
-        assert.string(containerId);
+        assert.optionalString(containerId);
         assert.optionalFunc(cb);
+
+        if (!containerId) return cb();
 
         var _this = this;
 
