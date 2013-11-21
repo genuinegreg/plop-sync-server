@@ -16,6 +16,7 @@ function Server(name /* config.server.name */,
 
     var server  = restify.createServer({
         name: name,
+        version: '0.1.4',
         log: logger
 
     });
