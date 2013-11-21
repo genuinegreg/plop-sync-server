@@ -59,10 +59,10 @@ BittorrentSync.prototype.startNewSyncContainer = function (folder, cb) {
             DB_COLLECTION: 'logs'
         },
         [
-            '27027'
+            '1337'
         ],
         [
-            '/btsync_data/'
+            '/data/'
         ],
         'genuinegreg/plop-btsync', [], function (code, output) {
             if (code) {
