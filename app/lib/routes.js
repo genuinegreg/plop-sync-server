@@ -1,292 +1,364 @@
 'use strict';
 
+require('colors');
 var async = require('async');
 var restify = require('restify');
-var schema = require('./schema');
-var logSchema = require('./logSchema');
-
 var sanitize = require('validator').sanitize;
 
-var dockerBtSync = require('./dockerBtsync');
 
 
-exports.Users = {
-    info: function getUserInfo(req, res, next) {
+function Routes(dataSchema, logSchema, bittorrentSync) {
 
-        schema.User.findOne({_id: req.params.id}, function (err, user) {
+    console.info('Initialize [Routes]'.green);
+    var _this = this;
 
-                if (err) return next(new restify.InternalError());
-                if (!user) return next(new restify.ResourceNotFoundError());
+    _this.Users = {
+        info: function getUserInfo(req, res, next) {
+
+            dataSchema.User.findOne({_id: req.params.id}, function (err, user) {
+
+                    if (err) {
+                        req.log.error(err, 'database error');
+                        return next(new restify.InternalError());
+                    }
+                    if (!user) {
+                        req.log.info('User not found');
+                        return next(new restify.ResourceNotFoundError());
+                    }
+
+                    res.send({
+                        id: user._id,
+                        email: user.email,
+                        firstName: user.firstName,
+                        lastName: user.lastName
+                    });
+
+                    req.log.info('ok');
+
+                }
+            )
+            ;
+        },
+        update: function updateUser(req, res, next) {
+
+            dataSchema.User.findOne(
+                {
+                    _id: req.params.id
+                },
+                function (err, user) {
+                    if (err) {
+                        req.log.error(err, 'database error');
+                        return next(new restify.InternalError());
+                    }
+                    if (!user) {
+                        req.log.info('Shared folder not found');
+                        return next(new restify.ResourceNotFoundError('Shared folder not found'));
+                    }
+
+
+                    user.increment();
+
+                    user.email = req.params.email;
+                    user.firstName = req.params.firstName;
+                    user.lastName = req.params.lastName;
+
+
+                    user.updatePassword(req.params.password, function (err) {
+                        if (err) {
+                            req.log.error(err, 'database error');
+                            return next(new restify.InternalError());
+                        }
+
+                        user.save(function (err) {
+                            if (err) return next(new restify.InternalError());
+
+                            res.send({
+                                update: 'ok'
+                            });
+                            req.log.trace('ok');
+                        });
+                    });
+
+
+                }
+            );
+        },
+        create: function createUser(req, res, next) {
+
+            dataSchema.User.create(req.params.id, req.params.password, function (err, user) {
+
+                if (err && err.code === 11000) {
+                    req.log.info('Username already in use')
+                    return next(new restify.InvalidArgumentError('Username already in use'));
+                }
+                if (err) {
+                    req.log.error(err, 'database error');
+                    return next(new restify.InternalError());
+                }
 
                 res.send({
                     id: user._id,
-                    email: user.email,
-                    firstName: user.firstName,
-                    lastName: user.lastName
+                    token: user.token
                 });
+                req.log.trace('ok');
+            });
+        },
+        login: function login(req, res, next) {
 
-            }
-        )
-        ;
-    },
-    update: function updateUser(req, res, next) {
-        console.log('updateUser()');
+            dataSchema.User.login(req.params.id, req.params.password, function (err, user) {
 
-        schema.User.findOne(
-            {
-                _id: req.params.id
-            },
-            function (err, user) {
-                if (err) return next(new restify.InternalError());
-                if (!user) return next(new restify.ResourceNotFoundError('Shared folder not found'));
-
-
-                user.increment();
-
-                user.email = req.params.email;
-                user.firstName = req.params.firstName;
-                user.lastName = req.params.lastName;
+                if (err) {
+                    req.log.error(err, 'database error');
+                    return next(new restify.InternalError());
+                }
+                if (!user) {
+                    req.log.info('Invalid Credentials');
+                    return next(new restify.InvalidCredentialsError());
+                }
 
 
-                user.updatePassword(req.params.password, function (err) {
-                    if (err)  return next(new restify.InternalError());
+                res.send({
+                    id: user.id,
+                    token: user.token
+                });
+                req.log.trace('ok');
+            });
+        }
+    };
 
-                    user.save(function (err) {
-                        if (err) return next(new restify.InternalError());
 
-                        res.send({
-                            update: 'ok'
+    _this.Folders = {
+        list: function getSharedFoldersList(req, res, next) {
+            req.user.findFolders(function (err, folders) {
+
+                if (err) {
+                    req.log.error(err, 'database error');
+                    return next(new restify.InternalError());
+                }
+
+                async.map(
+                    folders,
+                    function iterator(item, cb) {
+
+
+                        async.parallel({
+                            size: function (sizeCallback) {
+                                logSchema.DiskLog.findSize(item.containerId, false, sizeCallback);
+                            },
+                            dstat: function (dstatCallback) {
+                                logSchema.DstatLog.findDstat(item.containerId, dstatCallback);
+                            }
+                        }, function parallelCallback(err, results) {
+
+                            if (err) {
+                                req.log.error(err);
+                                return next(
+                                    new restify.InternalError());
+                            }
+
+                            cb(undefined, {
+                                id: item._id,
+                                name: item.name,
+                                description: item.description,
+                                created: item.created,
+                                size: (results.size ? results.size.size : undefined),
+                                dstat: (results.dstat ? results.dstat.dstat : undefined)
+                            });
+
                         });
-                    });
-                });
+                    },
+                    function callback(err, results) {
+                        if (err) {
+                            req.log.error(err);
+                            return next(new restify.InternalError());
+                        }
 
-
-            }
-        );
-    },
-    create: function createUser(req, res, next) {
-
-        schema.User.create(req.params.id, req.params.password, function (err, user) {
-
-            console.log('create() callback');
-
-            console.log(err);
-            console.log(user);
-
-            if (err && err.code === 11000) return next(new restify.InvalidArgumentError('Username already in use'));
-            if (err) return next(new restify.InternalError());
-
-            res.send({
-                id: user._id,
-                token: user.token
+                        res.send(results);
+                        req.log.trace('OK');
+                    }
+                );
             });
-        });
-    },
-    login: function login(req, res, next) {
+        },
+        get: function getSharedFolderInformation(req, res, next) {
+            dataSchema.Folder.findOne(
+                {
+                    user: req.user._id,
+                    _id: req.params.folderId
+                },
+                function (err, folder) {
+                    if (err) {
+                        req.log.error(err);
+                        return next(
+                            new restify.InternalError());
+                    }
 
-        schema.User.login(req.params.id, req.params.password, function (err, user) {
-
-            if (err) return next(new restify.InternalError());
-            if (!user) return next(new restify.InvalidCredentialsError());
-
-
-            res.send({
-                id: user.id,
-                token: user.token
-            });
-        });
-    }
-};
-
-
-exports.Folders = {
-    list: function getSharedFoldersList(req, res, next) {
-        console.log('getSharedFoldersList()');
-        req.user.findFolders(function (err, folders) {
-
-            if (err) return next(new restify.InternalError());
-
-            async.map(
-                folders,
-                function iterator(item, cb) {
-
+                    if (!folder) return next(
+                        new restify.ResourceNotFoundError('Shared folder not found'));
 
                     async.parallel({
                         size: function (sizeCallback) {
-                            logSchema.DiskLog.findSize(item.containerId.trim(), false, sizeCallback);
+                            logSchema.DiskLog.findSize(folder.containerId, false, sizeCallback);
                         },
                         dstat: function (dstatCallback) {
-                            logSchema.DstatLog.findDstat(item.containerId.trim(), dstatCallback);
+                            logSchema.DstatLog.findDstat(folder.containerId, dstatCallback);
                         }
                     }, function parallelCallback(err, results) {
 
-                        if (err) return next(
-                            new restify.InternalError());
+                        if (err) {
+                            req.log.error(err);
+                            return next(
+                                new restify.InternalError());
+                        }
 
-                        cb(undefined, {
-                            id: item._id,
-                            name: item.name,
-                            description: item.description,
-                            created: item.created,
-                            size: (results.size ? results.size.size : undefined),
-                            dstat: (results.dstat ? results.dstat.dstat : undefined)
-                        });
+
+                        res.send({
+                                id: folder._id,
+                                name: folder.name,
+                                secret: folder.secret,
+                                description: folder.description,
+                                created: folder.created,
+                                size: (results.size ? results.size.size : undefined),
+                                dstat: (results.dstat ? results.dstat.dstat : undefined)
+                            }
+                        );
+                        req.log.trace('OK');
 
                     });
-                },
-                function callback(err, results) {
-                    if (err) return next(new restify.InternalError());
 
-                    res.send(results);
+
                 }
-            );
-        });
-    },
-    get: function getSharedFolderInformation(req, res, next) {
-        console.log('getSharedFolderInformation()');
-        schema.Folder.findOne(
-            {
-                user: req.user._id,
-                _id: req.params.folderId
-            },
-            function (err, folder) {
-                if (err) return next(
-                    new restify.InternalError());
+            )
+            ;
 
-                if (!folder) return next(
-                    new restify.ResourceNotFoundError('Shared folder not found'));
+        },
+        create: function createSharedFolder(req, res, next) {
 
-                async.parallel({
-                    size: function (sizeCallback) {
-                        logSchema.DiskLog.findSize(folder.containerId.trim(), false, sizeCallback);
-                    },
-                    dstat: function (dstatCallback) {
-                        logSchema.DstatLog.findDstat(folder.containerId.trim(), dstatCallback);
-                    }
-                }, function parallelCallback(err, results) {
-
-                    if (err) return next(
-                        new restify.InternalError());
-
-
-                    res.send({
-                            id: folder._id,
-                            name: folder.name,
-                            secret: folder.secret,
-                            description: folder.description,
-                            created: folder.created,
-                            size: (results.size ? results.size.size : undefined),
-                            dstat: (results.dstat ? results.dstat.dstat : undefined)
-                        }
-                    );
-
-                });
-
-
+            // validation
+            if (req.params.secret) { // trim secret input
+                req.log.trace('Using user provided Secret');
+                req.params.secret = sanitize(req.params.secret).trim();
             }
-        )
-        ;
-
-    },
-    create: function createSharedFolder(req, res, next) {
-        console.log('createSharedFolder()');
-
-        if (req.params.secret) // trim secret input
-            req.params.secret = sanitize(req.params.secret).trim();
-        else //or generate a mock secret for now
-            req.params.secret = dockerBtSync.getSecret();
-
-        if (req.params.name) // trim secret name
-            req.params.name = sanitize(req.params.name).trim();
-
-        if (req.params.description) // trim secret name
-            req.params.description = sanitize(req.params.description).trim();
-
-
-        dockerBtSync.startNewSyncContainer(req.params.secret, function (err, containerId) {
-
-            if (err) {
-                console.error(err);
-                return next(new restify.InternalError());
+            else { //or generate a mock secret for now
+                req.log.trace('Generating a new Secret');
+                req.params.secret = bittorrentSync.getSecret();
             }
 
-            var folder = new schema.Folder({
+            if (req.params.name) // trim secret name
+                req.params.name = sanitize(req.params.name).trim();
+
+            if (req.params.description) // trim secret name
+                req.params.description = sanitize(req.params.description).trim();
+
+
+            // create a new folder data instance
+            var folder = new dataSchema.Folder({
                 name: req.params.name,
                 secret: req.params.secret,
                 description: req.params.description,
-                containerId: containerId,
                 user: req.user._id
             });
 
-            folder.save(function (err, folder) {
-                if (err) return next(new restify.InternalError());
+            // save folder
+            folder.save(function(err, folder) {
+                if (err || !folder) {
+                    req.log.error(err, 'database error');
+                    return next(new restify.InternalError());
+                }
 
-                console.log(folder);
-
+                // send response to client
                 res.send({
                     id: folder._id,
                     name: folder.name,
                     secret: folder.secret
                 });
+                req.log.trace('OK');
+
+                // then asynchronously start a new container
+                bittorrentSync.startNewSyncContainer(folder, function(err) {
+                    if (!err) return;
+                    req.log.error(err, 'ERROR : bittorrentSync.startNewSyncContainer()');
+                });
 
             });
-        });
 
-    },
-    delete: function deleteSharedFolder(req, res, next) {
-        console.log('deleteSharedFolder()');
+        },
+        delete: function deleteSharedFolder(req, res, next) {
 
-        schema.Folder.findOneAndRemove(
-            {
-                user: req.user._id,
-                _id: req.params.folderId
-            },
-            function (err, folder) {
-                if (err) return next(new restify.InternalError());
-
-                if (!folder)
-                    return next(new restify.ResourceNotFoundError('Shared folder not found'));
-
-                dockerBtSync.stopAndDeleteSyncContainer(folder.containerId, function (err) {
-                    if (err) return next(new restify.InternalError());
-
-                    res.send({
-                        remove: 'ok'
-                    });
-                });
-            }
-        );
-    },
-    update: function updateSharedFolder(req, res, next) {
-        console.log('updateSharedFolder()');
-
-        schema.Folder.findOne(
-            {
-                user: req.params.id,
-                _id: req.params.folderId
-            },
-            function (err, folder) {
-                if (err) return next(new restify.InternalError());
-                if (!folder) return next(new restify.ResourceNotFoundError('Shared folder not found'));
-
-                if (req.params.name || req.params.description) {
-                    if (req.params.name) folder.name = sanitize(req.params.name).xss();
-                    if (req.params.description) folder.description = sanitize(req.params.description).xss();
-
-                    folder.increment();
-
-                    folder.save(function (err) {
-                        if (err) return next(new restify.InternalError());
-
-                        res.send({
-                            update: 'ok'
-                        });
-                    });
+            function dataBaseDeletionHandler(err, folder) {
+                if (err) {
+                    req.log.error(err, 'Error : dataSchema.Folder.findOneAndRemove()');
+                    return next(new restify.InternalError());
                 }
 
+                if (!folder) {
+                    req.log.info('Shared folder not found');
+                    return next(new restify.ResourceNotFoundError('Shared folder not found'));
+                }
 
+                // send result back to the client
+                res.send({
+                    remove: 'ok'
+                });
+                req.log.debug('OK');
+
+                // and then asynchronously delete the container
+                bittorrentSync.stopAndDeleteSyncContainer(folder, function(err) {
+                    if (!err) return;
+                    req.log.error(err, 'Error: bittorrentSync.stopAndDeleteSyncContainer() unable to emove container');
+                });
             }
-        );
-    }
+
+            dataSchema.Folder.findOneAndRemove(
+                {
+                    user: req.user._id,
+                    _id: req.params.folderId
+                },
+                dataBaseDeletionHandler
+            );
+        },
+        update: function updateSharedFolder(req, res, next) {
+
+            dataSchema.Folder.findOne(
+                {
+                    user: req.params.id,
+                    _id: req.params.folderId
+                },
+                function (err, folder) {
+                    if (err) {
+                        req.log.error(err, 'Database error');
+                        return next(new restify.InternalError());
+                    }
+                    if (!folder) {
+                        req.log.info('Shared folder not found');
+                        return next(new restify.ResourceNotFoundError('Shared folder not found'));
+                    }
+
+                    if (req.params.name || req.params.description) {
+                        if (req.params.name) folder.name = sanitize(req.params.name).trim();
+                        if (req.params.description) folder.description = sanitize(req.params.description).trim();
+
+                        folder.increment();
+
+                        folder.save(function (err) {
+                            if (err) {
+                                req.log.error(err, 'database error');
+                                return next(new restify.InternalError());
+                            }
+
+                            res.send({
+                                update: 'ok'
+                            });
+                            req.log.trace('OK');
+                        });
+                    }
+
+
+                }
+            );
+        }
+    };
 }
-;
+
+module.exports = {
+    'routes': ['type', Routes]
+};

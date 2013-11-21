@@ -7,10 +7,8 @@ var sh = require('shelljs');
 
 if (!sh.which('docker')) throw new Error('`docker` command is needed');
 
-function Docker(name) {
-    if (name) this.name = name;
+function Docker() {
 }
-exports.Docker = Docker;
 
 /**
  * exec `docker run` command
@@ -20,13 +18,18 @@ exports.Docker = Docker;
  * @param command
  * @returns {BlogPost.slug.trim|*|string|SchemaType|jQuery.trim}
  */
-Docker.prototype.run = function (env, ports, image, command, cb) {
+Docker.prototype.run = function (env, ports, volumes, image, command, cb) {
+    volumes = volumes || [];
+    ports = ports || [];
+    env = env || {};
+    command = command || [];
 
     var _this = this;
 
     // check parameters
     assert.object(env, 'env');
     assert.arrayOfString(ports, 'ports');
+    assert.arrayOfString(volumes, 'volumes');
     assert.string(image, 'image');
     assert.arrayOfString(command, 'command');
     assert.func(cb, 'callback');
@@ -38,10 +41,6 @@ Docker.prototype.run = function (env, ports, image, command, cb) {
     cmd.push('-dns');
     cmd.push('8.8.8.8');
     cmd.push('-d');
-    if (_this.name) {
-        cmd.push('-name');
-        cmd.push(_this.name);
-    }
 
     Object.keys(env).forEach(function (key) {
         cmd.push('-e');
@@ -51,6 +50,11 @@ Docker.prototype.run = function (env, ports, image, command, cb) {
     ports.forEach(function (port) {
         cmd.push('-p');
         cmd.push(port);
+    });
+
+    volumes.forEach(function (volume) {
+        cmd.push('-v');
+        cmd.push(volume);
     });
 
     cmd.push(image);
@@ -77,7 +81,12 @@ Docker.prototype.stopAndDelete = function (containerId, cb) {
             sh.exec('docker rm -v ' + containerId, deleteCallback);
         }
     ], function (err, results) {
-        cb(err, results);
+        cb(err, results.map(function(elt) {return elt.trim();}));
 
     });
+};
+
+
+module.exports = {
+    'docker': ['type', Docker]
 };
